@@ -1,13 +1,21 @@
-import {Router} from "express";
-import { getAllUsers, createUsers, updateUsers, deleteUsers } from "../controllers/user.controllers";
+import { Router } from "express";
+import { getAllUsers, createUsers, updateUsers, deleteUsers, getUserById } from "../controllers/user.controllers";
 
-const UserRoutes = Router();
+const UserRouter = Router();
 
-UserRoutes
-.post("/", createUsers)
-.get("/", getAllUsers)
-.put("/:id", updateUsers)
-.delete("/:ID", deleteUsers);
+// Ruta para crear un nuevo usuario
+UserRouter.post("/", createUsers);
 
+// Ruta para obtener todos los usuarios
+UserRouter.get("/", getAllUsers);
 
-export default UserRoutes;
+// Ruta para obtener un usuario por su ID
+UserRouter.get("/:userId", getUserById);
+
+// Ruta para actualizar los datos de un usuario por su ID
+UserRouter.put("/:userId", updateUsers);
+
+// Ruta para eliminar un usuario por su ID
+UserRouter.delete("/:userId", deleteUsers);
+
+export default UserRouter;
