@@ -14,7 +14,7 @@ MoviesRouter.post('/:userId', createMovie);
 // Ruta para actualizar los detalles de una película específica
 MoviesRouter.put('/:id', updateMovie);
 
-// Ruta para eliminar una película específica
-MoviesRouter.delete('/:id', deleteMovie);
+// Ruta para eliminar una película de la lista de un usuario por su ID
+MoviesRouter.delete('/:movieId', deleteMovie);
 
 export default MoviesRouter;

@@ -14,6 +14,7 @@ const UserSchema = new Schema <IUser>({
     name: {
         type: String,
         required: true,
+        minlength: 2,
         trim: true //  el trim es para eliminar espacios en blanco adicionales
     },
     email: {
@@ -25,8 +26,7 @@ const UserSchema = new Schema <IUser>({
     password: {
         type: String,
         required: true,
-        minlength: 6,
-        maxlength: 18
+        minlength: 6
     },
     movies: {
         type: [{type: Schema.Types.ObjectId, ref: 'Movies'}]

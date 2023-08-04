@@ -6,9 +6,7 @@ export interface IMoviesDocument extends Document {
     genre: string,
     description: string,
     language: string,
-    image: string,
-    updatedAt: Date,
-    createdAt: Date
+    image: string
 }
 
 const MoviesSchema = new Schema <IMoviesDocument>({
