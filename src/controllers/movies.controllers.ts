@@ -108,29 +108,32 @@ export const updateMovie = async (req: Request, res: Response) => {
 };
 
 export const deleteMovie = async (req: Request, res: Response) => {
-    const { userId, movieId } = req.params; // ID del usuario y de la película
+    const { movieId } = req.params; // ID de la película que se eliminará
 
     try {
-        // Eliminar la referencia de la película en la lista de películas del usuario
-        const updateUser = await UserModel.updateOne(
-            { _id: userId },
+        // Buscar la película por su ID y eliminarla
+        const deletedMovie = await MoviesModel.findByIdAndDelete(movieId);
+
+        // Verificar si la película fue eliminada
+        if (!deletedMovie) {
+            return res.status(404).send({ status: 'error', message: 'Movie not found' });
+        }
+
+        // Eliminar la referencia de la película en los usuarios que la tenían en su lista
+        const updateUser = await UserModel.updateMany(
+            { movies: movieId },
             { $pull: { movies: movieId } }
         );
 
-        // Verificar si el documento del usuario fue actualizado
-        if (updateUser.modifiedCount > 0) {
-            // La película fue eliminada de la lista del usuario
-            return res.status(200).send({ status: 'success', message: 'Movie deleted successfully' });
-        } else {
-            // El usuario no tenía la película en su lista
-            return res.status(404).send({ status: 'error', message: 'Movie not found in user\'s list' });
-        }
+        // Enviar una respuesta exitosa sin contenido
+        res.status(204).send({ status: 'success', message: 'Movie deleted successfully' });
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
         res.status(500).send({ error: 'Internal server error' });
     }
 };
+
 
 
 
