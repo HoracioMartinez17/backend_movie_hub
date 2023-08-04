@@ -9,23 +9,23 @@ export const createUsers = async (req: Request, res: Response) => {
         // Verificar si se proporcionaron todos los campos requeridos
         const UniqueEmail = await UserModel.exists({ email })
         if (!name || !email || !password) {
-            return res.status(400).send({ error: "Please provide all the required fields" });
+            return res.status(400).send({ status: 'error', error: "Please provide all the required fields" });
         }
         //Verificar si el email ya existe en la base de datos
         if (UniqueEmail) {
-            return res.status(400).send({ error: "User with this email already exists." });
+            return res.status(400).send({ status: 'error', error: "User with this email already exists." });
         }
         // Verificar si el password es correcto
         if (password.length < 6) {
-            return res.status(400).send({ error: "Password must be at least 6 characters long." });
+            return res.status(400).send({ status: 'error', error: "Password must be at least 6 characters long." });
         }
         // Verificar si el email es válido
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return res.status(400).send({ error: "Invalid email format. Make sure it includes: '@', '.'" });
+            return res.status(400).send({ status: 'error', error: "Invalid email format. Make sure it includes: '@', '.'" });
         }
         // Verificar que el nombre de usuario sea correcto
         if (name.length > 30 || name.length < 2) {
-            return res.status(400).send({ error: "Invalid username. It must be between 2 and 30 characters long." })
+            return res.status(400).send({ status: 'error', error: "Invalid username. It must be between 2 and 30 characters long." })
         }
         // Crear un nuevo usuario en la base de datos
         const newUser = await UserModel.create({ name, email, password });
@@ -33,7 +33,7 @@ export const createUsers = async (req: Request, res: Response) => {
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ error: 'Internal server error' });
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 
@@ -46,7 +46,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
         if (!user) {
             // Si no se encuentra el usuario, devolver un mensaje de error
-            return res.status(404).send({ error: "User not found" });
+            return res.status(404).send({ status: 'error', error: "User not found" });
         }
 
         // Si se encontró el usuario, devolverlo en la respuesta
@@ -67,14 +67,14 @@ export const getUserById = async (req: Request, res: Response) => {
         // Verificar si tenemos usuarios en la base de datos
         if (!allUsers) {
             // Si no se encuentran usuarios, devolver un mensaje de error
-            return res.status(404).send({ error: "Users not found" });
+            return res.status(404).send({ status: 'error', error: "Users not found" });
         }
        // Si se encontró el usuario, devolverlo en la respuesta
         res.status(201).send({ status: 'success', allUsers});
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ error: 'Internal server error' });
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 

@@ -11,7 +11,7 @@ export const getMoviesByUserId = async (req: Request, res: Response) => {
         const movie = await MoviesModel.findById(id)
         if (!movie) {
             // Si no se encuentra la movie, devolver un mensaje de error con código 404
-            return res.status(404).send({ error: 'Movie not found' });
+            return res.status(404).send({ status: 'error', error: 'Movie not found' });
         }
 
         // Devolver el array de películas
@@ -19,7 +19,7 @@ export const getMoviesByUserId = async (req: Request, res: Response) => {
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ error: 'Internal server error'});
+        res.status(500).send({ status: 'error', error: 'Internal server error'});
     }
 };
 
@@ -49,15 +49,15 @@ export const createMovie = async (req: Request, res: Response) => {
         const user = await UserModel.findById(userId);
 
         if(!user){
-            res.status(404).send({ error: 'User not found' });
+           return res.status(404).send({ status: 'error', error: 'User not found' });
         }
         if(!name || !year  || !genre || !language || !image || !description){
-            res.status(400).send({ error: 'Please provide all required fields' });
+          return  res.status(400).send({ error: 'Please provide all required fields' });
         }
 
         // Validar que el año sea un número
         if(isNaN(year)){
-            res.status(400).send({ error: 'Year must be a number' })
+           return res.status(400).send({ status: 'error', error: 'Year must be a number' })
 
         }
         // Crear una nueva instancia de la película con los datos proporcionados
@@ -95,7 +95,7 @@ export const updateMovie = async (req: Request, res: Response) => {
 
         // Verificar si hubo algun error al actualizar la pelicula
         if (!updatedMovie) {
-            return res.status(404).send({ error: 'Movie not found' });
+            return res.status(404).send({ status: 'error', error: 'Movie not found' });
         }
 
         // Enviar la película actualizada como respuesta
@@ -103,7 +103,7 @@ export const updateMovie = async (req: Request, res: Response) => {
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ error: 'Internal server error'});
+        res.status(500).send({ status: 'error', error: 'Internal server error'});
     }
 };
 
