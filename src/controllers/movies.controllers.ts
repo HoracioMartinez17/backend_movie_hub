@@ -19,6 +19,13 @@ export const createMovie = async (req: Request, res: Response) => {
             return res.status(400).send({ status: 'error', error: 'Year must be a number' });
         }
 
+        //validar que el language sea un string
+        if (typeof language !== 'string') {
+            return res.status(400).send({ status: 'error', error: 'Language must be a string' });
+        }
+
+        //validar que el image sea un string
+
         const genreIDs: string[] = [];
 
         // Iterar el array de géneros para verificar si existen o crearlos si es necesario
@@ -130,54 +137,6 @@ export const getAllMovies = async (req: Request, res: Response) => {
 };
 
 
-
-// Controlador para obtener películas por género
-// export const getMoviesByGenre = async (req: Request, res: Response) => {
-//     const { genre, page, limit } = req.query;
-
-//     try {
-//         const options = {
-//             page: parseInt(page as string, 10) || 1,
-//             limit: parseInt(limit as string, 10) || 10,
-//         };
-
-//         // Buscar películas por género utilizando paginate
-//         const result = await MoviesModel.Pagination({ genres: genre }, options);
-
-//         res.json(result);
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// };
-
-
-// Controlador para actualizar las películas
-// export const updateMovie = async (req: Request, res: Response) => {
-//     const { id } = req.params;
-//     const { name, year, genre, language, image, description } = req.body;
-
-//     try {
-//         // Buscar la película por su ID y actualizar sus datos
-//         const updatedMovie = await MoviesModel.findByIdAndUpdate(
-//             { _id: id },
-//             { $set: { name, year, genre, description, language, image } },
-//             { new: true } // Devuelve el documento actualizado de la película
-//         );
-
-//         // Verificar si hubo algun error al actualizar la pelicula
-//         if (!updatedMovie) {
-//             return res.status(404).send({ status: 'error', error: 'Movie not found' });
-//         }
-
-//         // Enviar la película actualizada como respuesta
-//         res.status(200).send({status:'success',message: 'Movie update successfully', updatedMovie});
-//     } catch (err) {
-//         console.error(err); // Registrar el error en la consola para fines de depuración
-//         // En caso de error interno, devolver un mensaje de error con código 500
-//         res.status(500).send({ status: 'error', error: 'Internal server error'});
-//     }
-// };
 
 // Controlador para eliminar una pelicula
 export const deleteMovie = async (req: Request, res: Response) => {
