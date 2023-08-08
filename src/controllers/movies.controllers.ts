@@ -21,7 +21,7 @@ export const createMovie = async (req: Request, res: Response) => {
 
         const genreIDs: string[] = [];
 
-        // Loop through the genres array to check if they exist or create them if needed
+        // Recorra el array de géneros para verificar si existen o crearlos si es necesario
         for (const genreName of genres) {
             let genre = await prisma.genres.findFirst({ where: { name: genreName } });
           if (!genre) {
