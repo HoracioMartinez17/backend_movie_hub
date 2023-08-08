@@ -24,7 +24,7 @@ export const createMovie = async (req: Request, res: Response) => {
             return res.status(400).send({ status: 'error', error: 'Language must be a string' });
         }
 
-        //validar que el image sea un string
+       
 
         const genreIDs: string[] = [];
 
