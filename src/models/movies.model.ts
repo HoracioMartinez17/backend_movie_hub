@@ -3,7 +3,7 @@ import { model, Schema, Document } from "mongoose";
 export interface IMoviesDocument extends Document {
     name: string,
     year: number,
-    genre: string,
+    genres: string[],
     description: string,
     language: string,
     image: string
@@ -20,11 +20,7 @@ const MoviesSchema = new Schema <IMoviesDocument>({
         required: true,
         trim: true //  el trim es para eliminar espacios en blanco adicionales
     },
-    genre: {
-        type: String,
-        required: true,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
-    },
+   genres: [{ type: String, trim: true }],
     language: {
         type: String,
         required: true,

@@ -1,4 +1,5 @@
 import { model, Schema, Document } from "mongoose";
+import { mongoosePagination, Pagination } from "mongoose-paginate-ts";
 import bcrypt from 'bcrypt';
 
 export interface IUser extends Document {
@@ -79,6 +80,7 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string) 
 }
 
 // Crea el modelo 'User' utilizando el esquema definido
-const UserModel =  model<IUser>('User', UserSchema);
+UserSchema.plugin(mongoosePagination);
+const UserModel: Pagination<IUser> = model<IUser, Pagination<IUser>>("User", UserSchema);
 
 export default UserModel

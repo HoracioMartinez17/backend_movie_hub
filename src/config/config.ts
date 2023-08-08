@@ -7,16 +7,12 @@ type TConfig = {
 
 type EnvironmentConfig = {
     app: appConfig;
-    db: MongoDBConfig;
 }
 
 type appConfig = {
     PORT: string | number; // Puerto en el que se ejecutará la aplicación
 }
 
-type MongoDBConfig = {
-    URI: string; // URL de conexión a la base de datos MongoDB
-}
 
 // Cargar variables de entorno según el modo (development o production)
 if (process.env.NODE_ENV === 'production') {
@@ -34,17 +30,13 @@ const CONFIG: TConfig = {
         app: {
             PORT: process.env.PORT || 4001 // Puerto para desarrollo
         },
-        db: {
-            URI: process.env.MONGO_DB_URI || 'mongodb://localhost:27017/test_development' // URL de la base de datos para desarrollo
-        }
+
     },
     production: {
         app: {
             PORT: process.env.PORT || 4002 // Puerto para producción
-        },
-        db: {
-            URI: process.env.MONGO_DB_URI || 'mongodb://localhost:27017/test_development' // URL de la base de datos para producción
         }
+
     }
 }
 

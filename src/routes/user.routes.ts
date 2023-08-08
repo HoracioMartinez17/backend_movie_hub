@@ -7,7 +7,7 @@ const UserRouter = Router();
 UserRouter.post("/", createUsers);
 
 // Ruta para obtener todos los usuarios
-UserRouter.get("/", getAllUsers)
+UserRouter.get("/", getAllUsers);
 
 // Ruta para obtener un usuario por su ID
 UserRouter.get("/:userId", getUserById);

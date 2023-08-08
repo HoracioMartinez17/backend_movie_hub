@@ -1,21 +1,81 @@
 import { Request, Response } from 'express';
-import MoviesModel from '../models/movies.model'; // Importar el modelo de movies
-import UserModel from '../models/user.model'; // Importar el modelo de usuario
+import prisma from '../db/clientPrisma' // // Importar el modelo de movies
 
-// Controlador para obtener todas las películas  por su ID
-export const getMoviesByUserId = async (req: Request, res: Response) => {
-    const { id } = req.params;
+
+// Controlador para crear una nueva pelicula
+export const createMovie = async (req: Request, res: Response) => {
+    const { name, year, description, language, image, genres } = req.body;
+    const { userId } = req.params;
+    const { genrerId } = req.params;
+
+    try {
+        // Validar que se proporcionaron todos los campos requeridos
+        if (!name || !year || !genres || !language || !image || !description) {
+            return res.status(400).send({ error: 'Please provide all required fields' });
+        }
+
+        // Validar que el año sea un número
+        if (isNaN(year)) {
+            return res.status(400).send({ status: 'error', error: 'Year must be a number' });
+        }
+
+        const genreIDs: string[] = [];
+
+        // Loop through the genres array to check if they exist or create them if needed
+        for (const genreName of genres) {
+            let genre = await prisma.genres.findFirst({ where: { name: genreName } });
+          if (!genre) {
+            genre = await prisma.genres.create({ data: { name: genreName } });
+          }
+    
+          genreIDs.push(genre.id);
+        }
+    
+
+
+        // Crear una nueva instancia de la película con los datos proporcionados
+        const newMovie = await prisma.movies.create({
+            data: {
+                name,
+                year,
+                description,
+                language,
+                image,
+                genres: {
+                    connect: genreIDs.map((genreId: string) => ({ id:  genreId})),
+                },
+                User: {
+                    connect: {
+                        id: userId,
+                    },
+                },
+            },
+        });
+
+        // Enviar la película guardada como respuesta
+        res.status(201).send({ status: 'success', message: 'Movie created successfully', newMovie });
+    } catch (err) {
+        console.error(err); // Registrar el error en la consola para fines de depuración
+        // En caso de error interno, devolver un mensaje de error con código 500
+        res.status(500).send({ error: 'Internal server error' });
+    }
+};
+
+
+// Controlador para obtener las películas  por su ID
+export const getMoviesByMovieId = async (req: Request, res: Response) => {
+    const { movieId } = req.params;
 
     try {
         // Buscar la movie en la base de datos por su ID
-        const movie = await MoviesModel.findById(id)
+        const movie = await prisma.movies.findUnique({where:{id: movieId},include:{genres:true}})
         if (!movie) {
             // Si no se encuentra la movie, devolver un mensaje de error con código 404
             return res.status(404).send({ status: 'error', error: 'Movie not found' });
         }
 
         // Devolver el array de películas
-        res.send(movie);
+        res.status(200).send({status: 'success', movie});
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
@@ -23,107 +83,115 @@ export const getMoviesByUserId = async (req: Request, res: Response) => {
     }
 };
 
+
+// Controlador para obtener todas las peliculas
 export const getAllMovies = async (req: Request, res: Response) => {
-    try {
-        // Buscar todas las películas en la base de datos
-        const movies = await MoviesModel.find();
-
-        // Devolver el array de películas
-        res.send(movies);
-
-} catch (err) {
-    console.error(err); // Registrar el error en la consola para fines de depuración
-    // En caso de error interno, devolver un mensaje de error con código 500
-    res.status(500).send({ error: 'Internal server error' });
-}
-}
-
-
-export const createMovie = async (req: Request, res: Response) => {
-    const { name, year, genre, language, image, description } = req.body;
-    const { userId } = req.params;
+    const pageSize = 10; // Número de películas por página
+    const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Página actual
 
     try {
+        // Calcular el índice de inicio para saltar registros
+        const skip = (currentPage - 1) * pageSize;
 
+       // Buscar películas en la base de datos con paginación y campos seleccionados
+       const movies = await prisma.movies.findMany({
+        skip,
+        take: pageSize,
+        select: {
+            name: true,
+            year: true,
+            description: true,
+            language: true,
+            image: true,
+            genres: true,
+        },
+    })
+        // Contar todas las películas para calcular el total de páginas
+        const totalMovies = await prisma.movies.count();
 
-        const user = await UserModel.findById(userId);
+        // Calcular el número total de páginas
+        const totalPages = Math.ceil(totalMovies / pageSize);
 
-        if(!user){
-           return res.status(404).send({ status: 'error', error: 'User not found' });
-        }
-        if(!name || !year  || !genre || !language || !image || !description){
-          return  res.status(400).send({ error: 'Please provide all required fields' });
-        }
-
-        // Validar que el año sea un número
-        if(isNaN(year)){
-           return res.status(400).send({ status: 'error', error: 'Year must be a number' })
-
-        }
-        // Crear una nueva instancia de la película con los datos proporcionados
-        const newMovie = new MoviesModel({ name, year, genre, description, language, image });
-        // Guardar la nueva película en la base de datos
-        const savedMovie = await newMovie.save();
-
-        // Actualizar el documento del usuario para agregar la nueva película a su lista de películas
-        const updateMovieUser = await UserModel.findByIdAndUpdate(
-            { _id: userId },
-            { $push: { movies:newMovie } }, // Agregar el ID de la nueva película a la lista de películas del usuario
-            { new: true } // Devuelve el documento actualizado del usuario
-        );
-
-        // Enviar la película guardada como respuesta
-        res.status(201).send({status:'success',message: 'Movie create successfully',newMovie});
+        // Devolver la lista de películas y la información de paginación
+        res.status(200).send({
+            status: 'success',
+            data: movies,
+            pagination: {
+                currentPage,
+                pageSize,
+                totalMovies,
+                totalPages,
+            },
+        });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ error: 'Internal server error'});
+        console.error(err);
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 
-export const updateMovie = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { name, year, genre, language, image, description } = req.body;
 
-    try {
-        // Buscar la película por su ID y actualizar sus datos
-        const updatedMovie = await MoviesModel.findByIdAndUpdate(
-            { _id: id },
-            { $set: { name, year, genre, description, language, image } },
-            { new: true } // Devuelve el documento actualizado de la película
-        );
 
-        // Verificar si hubo algun error al actualizar la pelicula
-        if (!updatedMovie) {
-            return res.status(404).send({ status: 'error', error: 'Movie not found' });
-        }
+// Controlador para obtener películas por género
+// export const getMoviesByGenre = async (req: Request, res: Response) => {
+//     const { genre, page, limit } = req.query;
 
-        // Enviar la película actualizada como respuesta
-        res.status(200).send({status:'success',message: 'Movie update successfully', updatedMovie});
-    } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ status: 'error', error: 'Internal server error'});
-    }
-};
+//     try {
+//         const options = {
+//             page: parseInt(page as string, 10) || 1,
+//             limit: parseInt(limit as string, 10) || 10,
+//         };
 
+//         // Buscar películas por género utilizando paginate
+//         const result = await MoviesModel.Pagination({ genres: genre }, options);
+
+//         res.json(result);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
+
+
+// Controlador para actualizar las películas
+// export const updateMovie = async (req: Request, res: Response) => {
+//     const { id } = req.params;
+//     const { name, year, genre, language, image, description } = req.body;
+
+//     try {
+//         // Buscar la película por su ID y actualizar sus datos
+//         const updatedMovie = await MoviesModel.findByIdAndUpdate(
+//             { _id: id },
+//             { $set: { name, year, genre, description, language, image } },
+//             { new: true } // Devuelve el documento actualizado de la película
+//         );
+
+//         // Verificar si hubo algun error al actualizar la pelicula
+//         if (!updatedMovie) {
+//             return res.status(404).send({ status: 'error', error: 'Movie not found' });
+//         }
+
+//         // Enviar la película actualizada como respuesta
+//         res.status(200).send({status:'success',message: 'Movie update successfully', updatedMovie});
+//     } catch (err) {
+//         console.error(err); // Registrar el error en la consola para fines de depuración
+//         // En caso de error interno, devolver un mensaje de error con código 500
+//         res.status(500).send({ status: 'error', error: 'Internal server error'});
+//     }
+// };
+
+// Controlador para eliminar una pelicula
 export const deleteMovie = async (req: Request, res: Response) => {
     const { movieId } = req.params; // ID de la película que se eliminará
 
     try {
         // Buscar la película por su ID y eliminarla
-        const deletedMovie = await MoviesModel.findByIdAndDelete(movieId);
+        const deletedMovie = await prisma.movies.delete({where:{id: movieId}});
 
         // Verificar si la película fue eliminada
         if (!deletedMovie) {
             return res.status(404).send({ status: 'error', message: 'Movie not found' });
         }
 
-        // Eliminar la referencia de la película en los usuarios que la tenían en su lista
-        const updateUser = await UserModel.updateMany(
-            { movies: movieId },
-            { $pull: { movies: movieId } }
-        );
 
         // Enviar una respuesta exitosa sin contenido
         res.status(204).send({ status: 'success', message: 'Movie deleted successfully' });
