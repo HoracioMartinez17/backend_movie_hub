@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { getMoviesByMovieId, getAllMovies,createMovie, deleteMovie } from '../controllers/movies.controllers';
+import { getMoviesByMovieId, getAllMovies,createMovie, deleteMovie, updateMovie } from '../controllers/movies.controllers';
+import { convertMovieFields } from '../middlewares/convertMovieFields';
 
 const MoviesRouter = Router();
 
@@ -9,10 +10,10 @@ MoviesRouter.get('/:movieId', getMoviesByMovieId);
 MoviesRouter.get('/', getAllMovies);
 
 // Ruta para crear una nueva película asociada a un usuario específico
-MoviesRouter.post('/:userId', createMovie);
+MoviesRouter.post('/:userId',convertMovieFields, createMovie);
 
 // Ruta para actualizar los detalles de una película específica
-// MoviesRouter.put('/:id', updateMovie);
+ MoviesRouter.put('/:movieId',convertMovieFields, updateMovie);
 
 // Ruta para eliminar una película de la lista de un usuario por su ID
 MoviesRouter.delete('/:movieId', deleteMovie);

@@ -6,14 +6,14 @@ export const createGenre = async (req: Request, res: Response) => {
     const {name} = req.body
 
 
-     if (!name) {
-        return res.status(400).send({
-            message: "Please provide a name"
-        })
-     }
-
     try {
 
+        if (!name) {
+            return res.status(400).send({
+                message: "Please provide a name"
+            })
+         }
+    
         const newGenre = await prisma.genres.create({data:name});
 
         res.status(201).send(newGenre)
