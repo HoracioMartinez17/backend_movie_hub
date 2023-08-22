@@ -4,12 +4,12 @@ import prisma from '../db/clientPrisma' // Importar el modelo de usuario
 
 // Controlador para crear un nuevo usuario
    export const createUsers = async (req: Request, res: Response) => {
-    const { name, email, password } = req.body;
+    const { name, email} = req.body;
 
     try {
         // Verificar si se proporcionaron todos los campos requeridos
-        if (!name || !email || !password) {
-            return res.status(400).send({ status: 'error', error: 'Name, password, and email are required fields.' });
+        if (!name || !email ) {
+            return res.status(400).send({ status: 'error', error: 'Name,  and email are required fields.' });
         }
         // Verificar que el nombre de usuario sea correcto
         if (name.length > 30 || name.length < 2) {
@@ -22,35 +22,52 @@ import prisma from '../db/clientPrisma' // Importar el modelo de usuario
         return res.status(400).send({ status: 'error', error: "Invalid email format. Make sure it includes: '@', '.'" });
             }
 
+        // Verificar si el email ya existe en la base de datos
+        const emailExist = await prisma.user.findUnique({ where: { email: email },include: {
+            movies: {
+                select: {
+                    id: true,
+                    title: true,
+                    year: true,
+                    language: true,
+                    description: true,
+                    image: true,
+                    genres: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    }
+                }
+            }
+        },});
+        if (!emailExist) {
+            // Si pasamos todas las validaciones anteriores, se crea un nuevo usuario en la base de datos
+            const newUser = await prisma.user.create({ data:{name: name, email:email},include: {
+                movies: {
+                    select: {
+                        id: true,
+                        title: true,
+                        year: true,
+                        language: true,
+                        description: true,
+                        image: true,
+                        genres: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                }
+            },});
+           res.status(201).send({ status: 'success', message: "User created successfully!", user:newUser });
+        }else {
+            // Si el email ya existe, devuelve los datos del usuario existente
+            return res.status(200).send({ status: 'success', message: 'User already exists.', user: emailExist });
+          }
 
-        // Verificar si el password tiene los caracteres minimos
-        if (password.length < 6) {
-            return res.status(400).send({ status: 'error', error: "Password must be at least 6 characters long." });
-        }
-        // Verificar si el password tiene al menos un caracter especial
-        if (!/[^a-zA-Z0-9\s]/.test(password)) {
-            return res.status(400).send({ status: 'error', error: "Password must contain at least one special character." });
-        }
 
-        // Verificar si el password tiene al menos un caracter numérico
-        if (!/[0-9]/.test(password)) {
-            return res.status(400).send({ status: 'error', error: "Password must contain at least one number." });
-        }
-
-        // Verificar si el password tiene al menos una letra minúscula
-        if (!/[a-z]/.test(password)) {
-            return res.status(400).send({ status: 'error', error: "Password must contain at least one lowercase letter." });
-        }
-
-        // Verificar si el password tiene al menos una letra mayúscula
-        if (!/[A-Z]/.test(password)) {
-            return res.status(400).send({ status: 'error', error: "Password must contain at least one uppercase letter." });
-        }
-
-
-        // Si pasamos todas las validaciones anteriores, se crea un nuevo usuario en la base de datos
-        const newUser = await prisma.user.create({ data:{name, email, password}, });
-        res.status(201).send({ status: 'success', message: "User created successfully!", user: newUser });
 
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
@@ -65,14 +82,25 @@ export const getUserById = async (req: Request, res: Response) => {
     try {
         // Buscar el usuario por su ID y popula su campo "movies" con los documentos de películas
         const user = await prisma.user.findUnique({
-            where:{id: userId},
-            include:{
-                movies:{
-                    include:{
-                        genres:true
+            where: { id: userId },
+            include: {
+                movies: {
+                    select: {
+                        id: true,
+                        title: true,
+                        year: true,
+                        language: true,
+                        description: true,
+                        image: true,
+                        genres: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
                 }
-            }
-        }
+            },
         });
 
         if (!user) {
@@ -81,13 +109,14 @@ export const getUserById = async (req: Request, res: Response) => {
         }
 
         // Si se encontró el usuario, devolverlo en la respuesta
-        res.status(200).send({ status: 'success' ,user});
+        res.status(200).send({ status: 'success', user });
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
         res.status(500).send({ error: 'Internal server error' });
     }
 };
+
 
 
     // Controlador para obtener todos los usuarios

@@ -7,11 +7,18 @@ type TConfig = {
 
 type EnvironmentConfig = {
     app: appConfig;
+    auth0: auth0Config;
 }
 
 type appConfig = {
     PORT: string | number; // Puerto en el que se ejecutará la aplicación
 }
+type auth0Config = {
+    client_origin: string | undefined;
+    audience:  string | undefined;
+    issuer:  string | undefined;
+}
+
 
 
 // Cargar variables de entorno según el modo (development o production)
@@ -30,11 +37,21 @@ const CONFIG: TConfig = {
         app: {
             PORT: process.env.PORT || 4001 // Puerto para desarrollo
         },
+        auth0: {
+            client_origin: process.env.APP_ORIGIN,
+            audience: process.env.AUTH0_AUDIENCE,
+            issuer: process.env.AUTH0_ISSUER
+        }
 
     },
     production: {
         app: {
             PORT: process.env.PORT || 4002 // Puerto para producción
+        },
+        auth0: {
+            client_origin: process.env.APP_ORIGIN,
+            audience: process.env.AUTH0_AUDIENCE,
+            issuer: process.env.AUTH0_ISSUER
         }
 
     }

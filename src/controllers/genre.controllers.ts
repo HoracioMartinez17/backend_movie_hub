@@ -23,6 +23,40 @@ export const createGenre = async (req: Request, res: Response) => {
     }
 }
 
+export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
+    const { genreName, userId } = req.params;
+    
+    try {
+        const genre = await prisma.genres.findFirst({
+            where: { name: genreName },
+            include: {
+                Movies: {
+                    where: { userId }, // Filtrar películas por el usuario
+                    select: {
+                        id: true,
+                        title: true,
+                        year: true,
+                        language: true,
+                        description: true,
+                        image: true,
+                    },
+                },
+            },
+        });
+
+        if (!genre) {
+            return res.status(404).send({ status: 'error', error: "Genre not found" });
+        }
+
+        res.status(200).send({ status: 'success', movies: genre.Movies });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: 'Internal server error' });
+    }
+};
+
+
+
 
 export const getAllGenres = async (req: Request, res: Response) => {
 

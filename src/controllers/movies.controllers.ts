@@ -8,7 +8,6 @@ export const createMovie = async (req: Request, res: Response) => {
     const { userId } = req.params;
 
     try {
-
         const genreIDs: string[] = [];
 
         // Iterar el array de géneros para verificar si existen o crearlos si es necesario
@@ -37,16 +36,29 @@ export const createMovie = async (req: Request, res: Response) => {
                     },
                 },
             },
+            select: {
+                title: true,
+                year: true,
+                description: true,
+                language: true,
+                image: true,
+                genres: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
         });
 
         // Enviar la película guardada como respuesta
         res.status(201).send({ status: 'success', message: 'Movie created successfully', newMovie });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
+        console.error(err);
         res.status(500).send({ error: 'Internal server error' });
     }
 };
+
 
 //controlador para actualizar las peliculas
 export const updateMovie = async (req: Request, res: Response) => {
@@ -107,7 +119,21 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
 
     try {
         // Buscar la movie en la base de datos por su ID
-        const movie = await prisma.movies.findUnique({ where: { id: movieId }, include: { genres: true } })
+        const movie = await prisma.movies.findUnique({ where: { id: movieId },
+            select: {
+              id: true,
+              title: true,
+              year: true,
+              language: true,
+              description: true,
+              image: true,
+              genres: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          });
         if (!movie) {
             // Si no se encuentra la movie, devolver un mensaje de error con código 404
             return res.status(404).send({ status: 'error', error: 'Movie not found' });
