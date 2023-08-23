@@ -21,12 +21,13 @@ model User {
 
 model Movies {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
+  title       String
   year        Int
   language    String
   description String
   image       String
-  genres      Genres[]
+  genre       Genres   @relation(fields: [genreId], references: [id])
+  genreId     String   @db.ObjectId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   User        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -38,6 +39,5 @@ model Genres {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Movies    Movies?  @relation(fields: [moviesId], references: [id], onDelete: Cascade)
-  moviesId  String?  @db.ObjectId
+  movies    Movies[]
 }

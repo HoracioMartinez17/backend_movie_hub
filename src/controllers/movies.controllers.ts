@@ -4,20 +4,12 @@ import prisma from '../db/clientPrisma' // // Importar el modelo de movies
 
 // Controlador para crear una nueva pelicula
 export const createMovie = async (req: Request, res: Response) => {
-    const { title, year, description, language, image, genres } = req.body;
+    let { title, year, description, language, image, genre } = req.body;
     const { userId } = req.params;
 
     try {
-        const genreIDs: string[] = [];
 
-        // Iterar el array de géneros para verificar si existen o crearlos si es necesario
-        for (const genretitle of genres) {
-            let genre = await prisma.genres.findFirst({ where: { name: genretitle } });
-            if (!genre) {
-                genre = await prisma.genres.create({ data: { name: genretitle } });
-            }
-            genreIDs.push(genre.id);
-        }
+        // if (!Array.isArray(genre)) genre = [genre]
 
         // Crear una nueva instancia de la película con los datos proporcionados
         const newMovie = await prisma.movies.create({
@@ -27,8 +19,8 @@ export const createMovie = async (req: Request, res: Response) => {
                 description,
                 language,
                 image,
-                genres: {
-                    connect: genreIDs.map((genreId: string) => ({ id: genreId })),
+                genre: {
+                    connect: { id: genre },
                 },
                 User: {
                     connect: {
@@ -42,13 +34,13 @@ export const createMovie = async (req: Request, res: Response) => {
                 description: true,
                 language: true,
                 image: true,
-                genres: {
+                genre: {
                     select: {
                         id: true,
-                        name: true
-                    }
-                }
-            }
+                        name: true,
+                    },
+                },
+            },
         });
 
         // Enviar la película guardada como respuesta
@@ -60,6 +52,9 @@ export const createMovie = async (req: Request, res: Response) => {
 };
 
 
+
+
+
 //controlador para actualizar las peliculas
 export const updateMovie = async (req: Request, res: Response) => {
     const { movieId } = req.params;
@@ -67,33 +62,13 @@ export const updateMovie = async (req: Request, res: Response) => {
 
     try {
 
-        const genresIDs: string[] = []
 
-        // Iterar el array de géneros para verificar si existen, si no existe lo cramos, si ya existe, lo actualizamos
-        for (const genresName of genres) {
-            let genre = await prisma.genres.findFirst({ where: { name: genresName } });
-            if (!genre) {
-                genre = await prisma.genres.create({
-                  data: { name: genresName }
-                });
-            } else {
-                genre = await prisma.genres.update({
-                  where: { id: genre.id },
-                  data: { name: genresName }
-                });
-            }
-
-
-            genresIDs.push(genre.id);
-        }
 
         // Actualizar la pelicula por su id
         const updatedMovie = await prisma.movies.update({
             where: { id: movieId },
-            data: { title, description, year, image, language,
-                // Actualizar los generos de la película
-                genres: { connect: genresIDs.map(genreId => ({ id: genreId })) } }
-                ,include: {genres: true}});
+            data: { title, description, year, image, language},
+            include: {genre: true}});
 
         // Si no se encontró la película, devolver un error 404
         if (!updatedMovie) {
@@ -118,7 +93,7 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
     const { movieId } = req.params;
 
     try {
-        // Buscar la movie en la base de datos por su ID
+        // Buscar la movie en la base de datos por su ID y actualizarlo
         const movie = await prisma.movies.findUnique({ where: { id: movieId },
             select: {
               id: true,
@@ -127,7 +102,7 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
               language: true,
               description: true,
               image: true,
-              genres: {
+              genre: {
                 select: {
                   name: true
                 }
@@ -168,7 +143,7 @@ export const getAllMovies = async (req: Request, res: Response) => {
                 description: true,
                 language: true,
                 image: true,
-                genres: true,
+                genre: true,
             },
         })
         // Contar todas las películas para calcular el total de páginas

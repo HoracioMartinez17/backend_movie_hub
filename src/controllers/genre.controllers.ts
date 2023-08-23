@@ -3,25 +3,26 @@ import prisma from "../db/clientPrisma";
 
 
 export const createGenre = async (req: Request, res: Response) => {
-    const {name} = req.body
-
+     const { name } = req.body;
 
     try {
+        // Verificar si el género ya existe
+        const existingGenre = await prisma.genres.findFirst({ where: { name } });
 
-        if (!name) {
-            return res.status(400).send({
-                message: "Please provide a name"
-            })
-         }
-    
-        const newGenre = await prisma.genres.create({data:name});
+        if (existingGenre) {
+            return res.status(400).send({ error: 'Genre already exists' });
+        }
 
-        res.status(201).send(newGenre)
+        // Crear el nuevo género
+        const newGenre = await prisma.genres.create({ data: { name } });
 
-    } catch (error) {
-        res.status(500).send(error)
+        res.status(201).send({ status: 'success', message: 'Genre created successfully', newGenre });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: 'Internal server error' });
     }
-}
+};
+
 
 export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
     const { genreName, userId } = req.params;
@@ -30,7 +31,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
         const genre = await prisma.genres.findFirst({
             where: { name: genreName },
             include: {
-                Movies: {
+                movies: {
                     where: { userId }, // Filtrar películas por el usuario
                     select: {
                         id: true,
@@ -48,7 +49,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             return res.status(404).send({ status: 'error', error: "Genre not found" });
         }
 
-        res.status(200).send({ status: 'success', movies: genre.Movies });
+        res.status(200).send({ status: 'success', movies: genre.movies });
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'Internal server error' });

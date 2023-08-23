@@ -32,7 +32,7 @@ import prisma from '../db/clientPrisma' // Importar el modelo de usuario
                     language: true,
                     description: true,
                     image: true,
-                    genres: {
+                    genre: {
                         select: {
                             id: true,
                             name: true
@@ -52,7 +52,7 @@ import prisma from '../db/clientPrisma' // Importar el modelo de usuario
                         language: true,
                         description: true,
                         image: true,
-                        genres: {
+                        genre: {
                             select: {
                                 id: true,
                                 name: true
@@ -92,7 +92,7 @@ export const getUserById = async (req: Request, res: Response) => {
                         language: true,
                         description: true,
                         image: true,
-                        genres: {
+                        genre: {
                             select: {
                                 id: true,
                                 name: true
@@ -123,7 +123,7 @@ export const getUserById = async (req: Request, res: Response) => {
     export const getAllUsers = async (req: Request, res: Response) => {
     try {
         // Obtener todos los usuarios de la base de datos
-        const allUsers = await prisma.user.findMany({include:{movies:{include:{genres:true}}}});
+        const allUsers = await prisma.user.findMany({include:{movies:{include:{genre:true}}}});
         // Verificar si tenemos usuarios en la base de datos
         if (allUsers.length === 0) {
             // Si no se encuentran usuarios, devolver un mensaje de error

@@ -12,10 +12,10 @@ import { Request, Response, NextFunction } from 'express';
 
 
 export const convertMovieFields = (req: Request, res: Response, next: NextFunction) => {
-    const { title, year, description, language, image, genres } = req.body;
+    const { title, year, description, language, image, genre } = req.body;
 
-    // Validar que se proporcionaron todos los campos requeridos
-    if (!title || !year || !genres || !language || !image || !description) {
+    //Validar que se proporcionaron todos los campos requeridos
+    if (!title || !year || !genre || !language || !image || !description) {
         return res.status(400).send({ error: 'Please provide all required fields' });
     }
 
@@ -39,15 +39,9 @@ export const convertMovieFields = (req: Request, res: Response, next: NextFuncti
         req.body.title = title.toLowerCase();
     }
 
-    // Convertir los géneros a minúsculas si es un array de strings
-    if (Array.isArray(genres)) {
-        req.body.genres = genres.map(genre => {
-            if (typeof genre === 'string') {
-                return genre.toLowerCase();
-            } else {
-                return genre;
-            }
-        });
+    // Convertir los géneros a minúsculas
+    if (typeof genre === 'string'){
+        req.body.genre = genre.toLowerCase();
     }
 
     // Convertir la descripción a string si es un número
