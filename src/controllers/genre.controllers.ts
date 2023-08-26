@@ -26,13 +26,20 @@ export const createGenre = async (req: Request, res: Response) => {
 
 export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
     const { genreName, userId } = req.params;
-    
+    const pageSize = 4; // Número de películas por página
+    const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Página actual
+
     try {
+        // Calcular el índice de inicio para saltar registros
+        const skip = (currentPage - 1) * pageSize;
+
         const genre = await prisma.genres.findFirst({
             where: { name: genreName },
             include: {
                 movies: {
-                    where: { userId }, // Filtrar películas por el usuario
+                    where: { userId },
+                    skip,
+                    take: pageSize, // Aquí también se aplica la paginación
                     select: {
                         id: true,
                         title: true,
@@ -49,7 +56,16 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             return res.status(404).send({ status: 'error', error: "Genre not found" });
         }
 
-        res.status(200).send({ status: 'success', movies: genre.movies });
+        res.status(200).send({
+            status: 'success',
+            movies: genre.movies,
+            pagination: {
+                currentPage,
+                pageSize,
+                totalMovies: genre.movies.length, // Considerar cambiar esto
+                totalPages: Math.ceil(genre.movies.length / pageSize), // Considerar cambiar esto
+            },
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'Internal server error' });
@@ -59,11 +75,19 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
 
 
 
+
 export const getAllGenres = async (req: Request, res: Response) => {
+    const { userId } = req.params;
 
     try {
 
-        const allGenres = await prisma.genres.findMany()
+        const allGenres = await prisma.genres.findMany({include: { movies: {where:{userId},
+             select:{id: true,
+                title: true,
+                year: true,
+                language: true,
+                description: true,
+                image: true,}} }})
 
 
         res.status(201).send(allGenres)

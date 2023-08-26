@@ -19,9 +19,9 @@ export const convertMovieFields = (req: Request, res: Response, next: NextFuncti
         return res.status(400).send({ error: 'Please provide all required fields' });
     }
 
-    // Validar que el año sea un número
+    // convertir el año a numero, si es un string
     if (typeof year == 'string') {
-        return res.status(400).send({ status: 'error', error: 'Year must be a number' });
+        req.body.year = parseInt(year);
     }
 
     //validar que el language sea un string

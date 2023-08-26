@@ -58,7 +58,7 @@ export const createMovie = async (req: Request, res: Response) => {
 //controlador para actualizar las peliculas
 export const updateMovie = async (req: Request, res: Response) => {
     const { movieId } = req.params;
-    const { title, description, image, language, year, genres } = req.body;
+    const { title, description, image, language, year} = req.body;
 
     try {
 
@@ -126,7 +126,7 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
 
 // Controlador para obtener todas las peliculas
 export const getAllMovies = async (req: Request, res: Response) => {
-    const pageSize = 10; // Número de películas por página
+    const pageSize = 4; // Número de películas por página
     const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Página actual
 
     try {
@@ -201,6 +201,6 @@ export const deleteMovie = async (req: Request, res: Response) => {
 //     "description": "Descripción de la película",
 //     "language": "Idioma de la película",
 //     "image": "URL de la imagen",
-//     "genres": ["Nombre del género 1"]
+//     "genres": "id del género al que quiere relacionar la movie"
 //   }
 
