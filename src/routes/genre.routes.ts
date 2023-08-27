@@ -5,9 +5,9 @@ import { checkJwtMiddleware } from "../middlewares/checkjwt.middleware";
 const GenreRouter = Router()
 
 GenreRouter
-    .post("/", createGenre)
+    .post("/",checkJwtMiddleware, createGenre)
     .get("/:genreName/:userId",checkJwtMiddleware, getMoviesByGenreAndUser )
-    .get("/:userId", getAllGenres)
+    .get("/:userId",checkJwtMiddleware, getAllGenres)
 
 
 export default GenreRouter

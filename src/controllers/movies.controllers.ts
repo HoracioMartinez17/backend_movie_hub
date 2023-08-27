@@ -58,17 +58,20 @@ export const createMovie = async (req: Request, res: Response) => {
 //controlador para actualizar las peliculas
 export const updateMovie = async (req: Request, res: Response) => {
     const { movieId } = req.params;
-    const { title, description, image, language, year} = req.body;
+    const { title, description, image, language, year,genre} = req.body;
 
     try {
-
-
 
         // Actualizar la pelicula por su id
         const updatedMovie = await prisma.movies.update({
             where: { id: movieId },
-            data: { title, description, year, image, language},
-            include: {genre: true}});
+            data: { title, description, year, image, language,
+                genre:{connect: {
+                    id: genre
+                }
+
+            }},
+            });
 
         // Si no se encontró la película, devolver un error 404
         if (!updatedMovie) {
