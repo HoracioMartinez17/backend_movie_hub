@@ -1,15 +1,43 @@
 import { Request, Response } from 'express';
-import prisma from '../db/clientPrisma' // // Importar el modelo de movies
+import prisma from '../db/clientPrisma'
+import { uploadImage } from "../utils/cloudinary";
+import fs from 'fs-extra'
 
 
 // Controlador para crear una nueva pelicula
 export const createMovie = async (req: Request, res: Response) => {
-    let { title, year, description, language, image, genre } = req.body;
+    let { title, year, description, language, genre } = req.body;
     const { userId } = req.params;
 
-    try {
+    let secure_url_image: string = '';
+    let public_id_image: string = '';
 
-        // if (!Array.isArray(genre)) genre = [genre]
+
+
+    try {
+        const uploadedImage = req.files?.image;
+
+
+        // Verificar si uploadedImage existe y no es un array
+        if (uploadedImage === undefined || Array.isArray(uploadedImage)) {
+            console.log('Invalid or missing image');
+            return res.status(400).json('Invalid or missing image');
+        }
+
+        // Verificar si 'tempFilePath' está presente en uploadedImage
+        if (!('tempFilePath' in uploadedImage)) {
+            console.log('Missing tempFilePath');
+            return res.status(400).send('Missing tempFilePath');
+        }
+
+        // Subir la imagen a Cloudinary
+        const image = await uploadImage(uploadedImage.tempFilePath);
+        public_id_image = image.public_id;
+        secure_url_image = image.secure_url;
+
+        // Eliminar el archivo temporal
+        await fs.unlink(uploadedImage.tempFilePath);
+
 
         // Crear una nueva instancia de la película con los datos proporcionados
         const newMovie = await prisma.movies.create({
@@ -18,7 +46,12 @@ export const createMovie = async (req: Request, res: Response) => {
                 year,
                 description,
                 language,
-                image,
+                image: {
+                    create: {
+                        public_id: public_id_image,
+                        secure_url: secure_url_image,
+                    },
+                },
                 genre: {
                     connect: { id: genre },
                 },
@@ -33,7 +66,12 @@ export const createMovie = async (req: Request, res: Response) => {
                 year: true,
                 description: true,
                 language: true,
-                image: true,
+                image: {
+                    select: {
+                        public_id: true,
+                        secure_url: true,
+                    },
+                },
                 genre: {
                     select: {
                         id: true,
@@ -45,6 +83,7 @@ export const createMovie = async (req: Request, res: Response) => {
 
         // Enviar la película guardada como respuesta
         res.status(201).send({ status: 'success', message: 'Movie created successfully', newMovie });
+
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'Internal server error' });
@@ -53,35 +92,80 @@ export const createMovie = async (req: Request, res: Response) => {
 
 
 
-
-
 //controlador para actualizar las peliculas
-export const updateMovie = async (req: Request, res: Response) => {
+export const updateMovieWithImage = async (req: Request, res: Response) => {
     const { movieId } = req.params;
-    const { title, description, image, language, year,genre} = req.body;
+    const { title, description, language, year, genre } = req.body;
 
     try {
-
-        // Actualizar la pelicula por su id
-        const updatedMovie = await prisma.movies.update({
+        // Obtener la película existente por su ID
+        const existingMovie = await prisma.movies.findUnique({
             where: { id: movieId },
-            data: { title, description, year, image, language,
-                genre:{connect: {
-                    id: genre
-                }
-
-            }},
-            });
+        });
 
         // Si no se encontró la película, devolver un error 404
-        if (!updatedMovie) {
+        if (!existingMovie) {
             return res.status(404).send({ status: 'error', message: 'Movie not found' });
         }
 
-        // Devolver una espuesta 201 que indica que la creación ha sido exitosa
-        res.status(201).send({ status: 'success', message: 'Movie updated successfully', updatedMovie });
+        // Crear un objeto de datos con los campos proporcionados en la solicitud
+        const updatedData: any = {}; // Define las propiedades necesarias y sus tipos
 
+        if (title !== undefined) {
+            updatedData.title = title;
+        }
 
+        if (description !== undefined) {
+            updatedData.description = description;
+        }
+
+        if (language !== undefined) {
+            updatedData.language = language;
+        }
+
+        if (year !== undefined) {
+            updatedData.year = year;
+        }
+
+        if (genre !== undefined) {
+            updatedData.genre = { connect: { id: genre } };
+        }
+
+        // Actualizar la película con los campos proporcionados
+        const updatedMovie = await prisma.movies.update({
+            where: { id: movieId },
+            data: updatedData,
+        });
+
+        // Cargar la nueva imagen (si se proporciona) y actualizar la referencia de la imagen en la base de datos
+        const uploadedImage = req.files?.image;
+        if (uploadedImage && 'tempFilePath' in uploadedImage) {
+            try {
+                // Subir la nueva imagen
+                const posterImage = await uploadImage(uploadedImage.tempFilePath);
+
+                // Actualizar la referencia de la imagen en la base de datos
+                await prisma.movies.update({
+                    where: { id: movieId },
+                    data: {
+                        image: {
+                            update: {
+                                public_id: posterImage.public_id,
+                                secure_url: posterImage.secure_url,
+                            },
+                        },
+                    },
+                });
+
+                // Eliminar el archivo temporal de la nueva imagen
+                await fs.unlink(uploadedImage.tempFilePath);
+            } catch (error) {
+                return res.status(500).json({ error: 'Upload error' });
+            }
+        }
+
+        // Devolver una respuesta 200 que indica que la actualización ha sido exitosa
+        res.status(200).send({ status: 'success', message: 'Movie updated successfully', updatedMovie });
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración
         // En caso de error interno, devolver un mensaje de error con código 500
@@ -96,22 +180,23 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
     const { movieId } = req.params;
 
     try {
-        // Buscar la movie en la base de datos por su ID y actualizarlo
-        const movie = await prisma.movies.findUnique({ where: { id: movieId },
+        // Buscar la movie en la base de datos por su ID
+        const movie = await prisma.movies.findUnique({
+            where: { id: movieId },
             select: {
-              id: true,
-              title: true,
-              year: true,
-              language: true,
-              description: true,
-              image: true,
-              genre: {
-                select: {
-                  name: true
+                id: true,
+                title: true,
+                year: true,
+                language: true,
+                description: true,
+                image: true,
+                genre: {
+                    select: {
+                        name: true
+                    }
                 }
-              }
             }
-          });
+        });
         if (!movie) {
             // Si no se encuentra la movie, devolver un mensaje de error con código 404
             return res.status(404).send({ status: 'error', error: 'Movie not found' });
@@ -171,7 +256,6 @@ export const getAllMovies = async (req: Request, res: Response) => {
         res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
-
 
 
 // Controlador para eliminar una pelicula

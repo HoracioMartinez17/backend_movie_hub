@@ -1,9 +1,9 @@
-import {Request, Response} from "express";
+import { Request, Response } from "express";
 import prisma from "../db/clientPrisma";
 
 
 export const createGenre = async (req: Request, res: Response) => {
-     const { name } = req.body;
+    const { name } = req.body;
 
     try {
         // Verificar si el género ya existe
@@ -26,11 +26,9 @@ export const createGenre = async (req: Request, res: Response) => {
 
 export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
     const { genreName, userId } = req.params;
-    const pageSize = 4; // Número de películas por página
-    const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Página actual
-
+    const pageSize = 4; // Number of movies per page
+    const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Current page
     try {
-        // Calcular el índice de inicio para saltar registros
         const skip = (currentPage - 1) * pageSize;
 
         const genre = await prisma.genres.findFirst({
@@ -38,23 +36,31 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             include: {
                 movies: {
                     where: { userId },
-                    skip,
-                    take: pageSize, // Aquí también se aplica la paginación
-                    select: {
-                        id: true,
-                        title: true,
-                        year: true,
-                        language: true,
-                        description: true,
-                        image: true,
-                    },
-                },
-            },
+                    skip: skip,
+                    take: pageSize,
+                    include: {
+                        genre: {
+                            select: {
+                                name: true
+                            }
+                        },
+                        image: {
+                            select: {
+                                secure_url: true,
+                                public_id: true
+                            }
+                        }
+                    }
+                }
+            }
         });
 
         if (!genre) {
             return res.status(404).send({ status: 'error', error: "Genre not found" });
         }
+
+        const totalMovies = await prisma.movies.count({ where: { genreId: genre.id, userId } });
+        const totalPages = Math.ceil(totalMovies / pageSize);
 
         res.status(200).send({
             status: 'success',
@@ -62,15 +68,16 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             pagination: {
                 currentPage,
                 pageSize,
-                totalMovies: genre.movies.length, // Considerar cambiar esto
-                totalPages: Math.ceil(genre.movies.length / pageSize), // Considerar cambiar esto
-            },
+                totalMovies,
+                totalPages
+            }
         });
     } catch (err) {
         console.error(err);
-        res.status(500).send({ error: 'Internal server error' });
+        res.status(500).send({ status: 'error', error: 'An error occurred' });
     }
 };
+
 
 
 
@@ -81,13 +88,21 @@ export const getAllGenres = async (req: Request, res: Response) => {
 
     try {
 
-        const allGenres = await prisma.genres.findMany({include: { movies: {where:{userId},
-             select:{id: true,
-                title: true,
-                year: true,
-                language: true,
-                description: true,
-                image: true,}} }})
+        const allGenres = await prisma.genres.findMany({
+            include: {
+                movies: {
+                    where: { userId },
+                    select: {
+                        id: true,
+                        title: true,
+                        year: true,
+                        language: true,
+                        description: true,
+                        image: true,
+                    }
+                }
+            }
+        })
 
 
         res.status(201).send(allGenres)

@@ -8,16 +8,25 @@ type TConfig = {
 type EnvironmentConfig = {
     app: appConfig;
     auth0: auth0Config;
+    cloudinary: cloudinaryConfig;
 }
 
 type appConfig = {
     PORT: string | number; // Puerto en el que se ejecutará la aplicación
 }
+
 type auth0Config = {
     client_origin: string | undefined;
     audience:  string | undefined;
     issuer:  string | undefined;
 }
+
+type cloudinaryConfig = {
+    cloud_name: string | undefined;
+    api_key: string | undefined;
+    api_secret: string | undefined;
+}
+
 
 
 
@@ -41,6 +50,11 @@ const CONFIG: TConfig = {
             client_origin: process.env.APP_ORIGIN,
             audience: process.env.AUTH0_AUDIENCE,
             issuer: process.env.AUTH0_ISSUER
+        },
+        cloudinary: {
+            cloud_name: process.env.CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
         }
 
     },
@@ -52,6 +66,11 @@ const CONFIG: TConfig = {
             client_origin: process.env.APP_ORIGIN,
             audience: process.env.AUTH0_AUDIENCE,
             issuer: process.env.AUTH0_ISSUER
+        },
+        cloudinary: {
+            cloud_name: process.env.CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
         }
 
     }

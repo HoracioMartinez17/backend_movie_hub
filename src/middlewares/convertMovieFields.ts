@@ -12,10 +12,10 @@ import { Request, Response, NextFunction } from 'express';
 
 
 export const convertMovieFields = (req: Request, res: Response, next: NextFunction) => {
-    const { title, year, description, language, image, genre } = req.body;
+    const { title, year, description, language, genre } = req.body;
 
     //Validar que se proporcionaron todos los campos requeridos
-    if (!title || !year || !genre || !language || !image || !description) {
+    if (!title || !year || !genre || !language  || !description) {
         return res.status(400).send({ error: 'Please provide all required fields' });
     }
 
