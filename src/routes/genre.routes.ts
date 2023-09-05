@@ -6,10 +6,10 @@ const GenreRouter = Router()
 
 GenreRouter
     .post("/",checkJwtMiddleware, createGenre)
-    .put("/:genreName/:userId",checkJwtMiddleware, updateGenre )
+    .put("/:genreName/:id",checkJwtMiddleware, updateGenre )
     .get("/:genreName/:userId",checkJwtMiddleware, getMoviesByGenreAndUser )
     .get("/:userId",checkJwtMiddleware, getAllGenres)
-    .delete("/:genreName/:userId",checkJwtMiddleware, deleteGenre )
+    .delete("/:genreName/:id",checkJwtMiddleware, deleteGenre )
 
 
 export default GenreRouter

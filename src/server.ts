@@ -7,27 +7,25 @@ import GenreRouter from './routes/genre.routes';
 import errorHandler from './middlewares/error.middleware';
 import fileUpload from 'express-fileupload';
 
-// Inicializar la aplicación Express
+// Initialize the Express application
 const app: Express = express();
 
-// Configurar middlewares
-app.use(express.json()); // Middleware para manejar JSON en las solicitudes
-app.use(morgan('dev')); // Middleware para el registro de solicitudes en la consola
-app.use(cors()); // Middleware para habilitar CORS (Cross-Origin Resource Sharing)
-app.use(express.urlencoded({ extended: false })); // Middleware para analizar datos de formularios
-// Configurar express-fileupload
+// Configure middlewares
+app.use(express.json()); // Middleware for handling JSON in requests
+app.use(morgan('dev')); // Middleware for request logging in the console
+app.use(cors()); // Middleware for enabling CORS (Cross-Origin Resource Sharing)
+app.use(express.urlencoded({ extended: false })); // Middleware for parsing form data
+// Configure express-fileupload
 app.use(fileUpload({
     useTempFiles: true,
     tempFileDir: "./uploads"
 }));
-app.use(errorHandler); // Middleware para manejar errores
+app.use(errorHandler); // Middleware for handling errors
 
-
-
-// Configurar rutas
-app.use('/user', UserRouter); // Usar el enrutador de usuarios en la ruta /users
-app.use('/movies', MoviesRouter); // Usar el enrutador de películas en la ruta /movies
-app.use("/genres" ,GenreRouter); // Usar el enrutador de películas en la ruta /genres
-app.use(errorHandler)
+// Configure routes
+app.use('/user', UserRouter); // Use the user router at the /user route
+app.use('/movies', MoviesRouter); // Use the movies router at the /movies route
+app.use("/genres" ,GenreRouter); // Use the genre router at the /genres route
+app.use(errorHandler);
 
 export default app;
