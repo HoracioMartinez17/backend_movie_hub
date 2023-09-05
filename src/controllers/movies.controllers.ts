@@ -47,9 +47,6 @@ export const createMovie = async (req: Request, res: Response) => {
         if (!user) {
             return res.status(404).send({ status: 'error', error: 'User not found' });
         }
-        if (!name || !year || !genre || !language || !image || !description) {
-            return res.status(400).send({ error: 'Please provide all required fields' });
-        }
 
 
         // Create a new movie instance with the provided data
