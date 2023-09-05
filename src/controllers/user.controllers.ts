@@ -3,32 +3,13 @@ import UserModel from '../models/user.model'; // Importar el modelo de usuario
 
 // Controlador para crear un nuevo usuario
 export const createUsers = async (req: Request, res: Response) => {
-    const { name, email, password } = req.body;
+    const { name, email } = req.body;
 
     try {
         // Verificar si se proporcionaron todos los campos requeridos
         const UniqueEmail = await UserModel.exists({ email })
-        if (!name || !email || !password) {
-            return res.status(400).send({ status: 'error', error: "Please provide all the required fields" });
-        }
-        //Verificar si el email ya existe en la base de datos
-        if (UniqueEmail) {
-            return res.status(400).send({ status: 'error', error: "User with this email already exists." });
-        }
-        // Verificar si el password es correcto
-        if (password.length < 6) {
-            return res.status(400).send({ status: 'error', error: "Password must be at least 6 characters long." });
-        }
-        // Verificar si el email es válido
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return res.status(400).send({ status: 'error', error: "Invalid email format. Make sure it includes: '@', '.'" });
-        }
-        // Verificar que el nombre de usuario sea correcto
-        if (name.length > 30 || name.length < 2) {
-            return res.status(400).send({ status: 'error', error: "Invalid username. It must be between 2 and 30 characters long." })
-        }
         // Crear un nuevo usuario en la base de datos
-        const newUser = await UserModel.create({ name, email, password });
+        const newUser = await UserModel.create({ name, email });
         res.status(201).send({ status: 'success', message: "User created successfully!", user: newUser });
     } catch (err) {
         console.error(err); // Registrar el error en la consola para fines de depuración

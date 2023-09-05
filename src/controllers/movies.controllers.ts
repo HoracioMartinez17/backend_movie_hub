@@ -135,14 +135,3 @@ export const deleteMovie = async (req: Request, res: Response) => {
 };
 
 
-
-
-
-//modelo de creacio de movies
-    // "name": "Harry",
-    // "year": 2902,
-    // "genre": "terror",
-    // "language": "español",
-    // "description": "Hola como estaaas?",
-    // "image": "https://image.tmdb.org/t/p/original/8ozl0nSIUy1guQuv3d0UWXyvfJm.jpg"
-  
