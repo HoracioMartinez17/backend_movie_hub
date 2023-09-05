@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import {prismaClient} from "../db/clientPrisma";
+import { convertToType } from "../utils/convertToType";
 
 
 export const createGenre = async (req: Request, res: Response) => {
@@ -35,7 +36,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             where: { name: genreName },
             include: {
                 movies: {
-                    where: { userId },
+                    where: { userId: convertToType(userId) },
                     skip: skip,
                     take: pageSize,
                     include: {
@@ -59,7 +60,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             return res.status(404).send({ status: 'error', error: "Genre not found" });
         }
 
-        const totalMovies = await prismaClient.movies.count({ where: { genreId: genre.id, userId } });
+        const totalMovies = await prismaClient.movies.count({ where: { genreId: convertToType(genre.id), userId:convertToType(userId) } });
         const totalPages = Math.ceil(totalMovies / pageSize);
 
         res.status(200).send({
@@ -91,7 +92,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
         const allGenres = await prismaClient.genres.findMany({
             include: {
                 movies: {
-                    where: { userId },
+                    where: {userId: convertToType(userId)},
                     select: {
                         id: true,
                         title: true,
