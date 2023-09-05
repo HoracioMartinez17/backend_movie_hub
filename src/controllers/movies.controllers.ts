@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import prisma from '../db/clientPrisma'
+import {prismaClient} from '../db/clientPrisma'
 import { uploadImage } from "../utils/cloudinary";
 import fs from 'fs-extra'
+import { convertToType } from '../utils/convertToType';
 
 
 // Controlador para crear una nueva pelicula
@@ -40,7 +41,7 @@ export const createMovie = async (req: Request, res: Response) => {
 
 
         // Crear una nueva instancia de la película con los datos proporcionados
-        const newMovie = await prisma.movies.create({
+        const newMovie = await prismaClient.movies.create({
             data: {
                 title,
                 year,
@@ -99,8 +100,8 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
 
     try {
         // Obtener la película existente por su ID
-        const existingMovie = await prisma.movies.findUnique({
-            where: { id: movieId },
+        const existingMovie = await prismaClient.movies.findUnique({
+            where: { id:  convertToType(movieId) },
         });
 
         // Si no se encontró la película, devolver un error 404
@@ -132,8 +133,8 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
         }
 
         // Actualizar la película con los campos proporcionados
-        const updatedMovie = await prisma.movies.update({
-            where: { id: movieId },
+        const updatedMovie = await prismaClient.movies.update({
+            where: { id: convertToType(movieId) },
             data: updatedData,
         });
 
@@ -145,8 +146,8 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
                 const posterImage = await uploadImage(uploadedImage.tempFilePath);
 
                 // Actualizar la referencia de la imagen en la base de datos
-                await prisma.movies.update({
-                    where: { id: movieId },
+                await prismaClient.movies.update({
+                    where: { id: convertToType(movieId) },
                     data: {
                         image: {
                             update: {
@@ -181,8 +182,8 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
 
     try {
         // Buscar la movie en la base de datos por su ID
-        const movie = await prisma.movies.findUnique({
-            where: { id: movieId },
+        const movie = await prismaClient.movies.findUnique({
+            where: { id:convertToType(movieId) },
             select: {
                 id: true,
                 title: true,
@@ -222,7 +223,7 @@ export const getAllMovies = async (req: Request, res: Response) => {
         const skip = (currentPage - 1) * pageSize;
 
         // Buscar películas en la base de datos con paginación y campos seleccionados
-        const movies = await prisma.movies.findMany({
+        const movies = await prismaClient.movies.findMany({
             skip,
             take: pageSize,
             select: {
@@ -235,7 +236,7 @@ export const getAllMovies = async (req: Request, res: Response) => {
             },
         })
         // Contar todas las películas para calcular el total de páginas
-        const totalMovies = await prisma.movies.count();
+        const totalMovies = await prismaClient.movies.count();
 
         // Calcular el número total de páginas
         const totalPages = Math.ceil(totalMovies / pageSize);
@@ -264,7 +265,7 @@ export const deleteMovie = async (req: Request, res: Response) => {
 
     try {
         // Buscar la película por su ID y eliminarla
-        const deletedMovie = await prisma.movies.delete({ where: { id: movieId } });
+        const deletedMovie = await prismaClient.movies.delete({ where: { id: movieId } });
 
         // Verificar si la película fue eliminada
         if (!deletedMovie) {

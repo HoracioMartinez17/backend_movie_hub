@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import prisma from "../db/clientPrisma";
+import {prismaClient} from "../db/clientPrisma";
 
 
 export const createGenre = async (req: Request, res: Response) => {
@@ -7,14 +7,14 @@ export const createGenre = async (req: Request, res: Response) => {
 
     try {
         // Verificar si el género ya existe
-        const existingGenre = await prisma.genres.findFirst({ where: { name } });
+        const existingGenre = await prismaClient.genres.findFirst({ where: { name } });
 
         if (existingGenre) {
             return res.status(400).send({ error: 'Genre already exists' });
         }
 
         // Crear el nuevo género
-        const newGenre = await prisma.genres.create({ data: { name } });
+        const newGenre = await prismaClient.genres.create({ data: { name } });
 
         res.status(201).send({ status: 'success', message: 'Genre created successfully', newGenre });
     } catch (err) {
@@ -31,7 +31,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
     try {
         const skip = (currentPage - 1) * pageSize;
 
-        const genre = await prisma.genres.findFirst({
+        const genre = await prismaClient.genres.findFirst({
             where: { name: genreName },
             include: {
                 movies: {
@@ -59,7 +59,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             return res.status(404).send({ status: 'error', error: "Genre not found" });
         }
 
-        const totalMovies = await prisma.movies.count({ where: { genreId: genre.id, userId } });
+        const totalMovies = await prismaClient.movies.count({ where: { genreId: genre.id, userId } });
         const totalPages = Math.ceil(totalMovies / pageSize);
 
         res.status(200).send({
@@ -88,7 +88,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
 
     try {
 
-        const allGenres = await prisma.genres.findMany({
+        const allGenres = await prismaClient.genres.findMany({
             include: {
                 movies: {
                     where: { userId },

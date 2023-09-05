@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../db/clientPrisma' // Importar el modelo de usuario
+import {prismaClient} from '../db/clientPrisma' // Importar el modelo de usuario
+import { convertToType } from '../utils/convertToType';
 
 
 // Controlador para crear un nuevo usuario
@@ -23,7 +24,7 @@ export const createUsers = async (req: Request, res: Response) => {
         }
 
         // Verificar si el email ya existe en la base de datos
-        const emailExist = await prisma.user.findUnique({
+        const emailExist = await prismaClient.user.findUnique({
             where: { email: email }, include: {
                 movies: {
                     select: {
@@ -45,7 +46,7 @@ export const createUsers = async (req: Request, res: Response) => {
         });
         if (!emailExist) {
             // Si pasamos todas las validaciones anteriores, se crea un nuevo usuario en la base de datos
-            const newUser = await prisma.user.create({
+            const newUser = await prismaClient.user.create({
                 data: { name: name, email: email }, include: {
                     movies: {
                         select: {
@@ -85,8 +86,8 @@ export const getUserById = async (req: Request, res: Response) => {
     const { userId } = req.params;
     try {
         // Buscar el usuario por su ID y popula su campo "movies" con los documentos de películas
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
+        const user = await prismaClient.user.findUnique({
+            where: { id: convertToType(userId)  },
             include: {
                 movies: {
                     select: {
@@ -127,7 +128,7 @@ export const getUserById = async (req: Request, res: Response) => {
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         // Obtener todos los usuarios de la base de datos
-        const allUsers = await prisma.user.findMany({ include: { movies: { include: { genre: true } } } });
+        const allUsers = await prismaClient.user.findMany({ include: { movies: { include: { genre: true } } } });
         // Verificar si tenemos usuarios en la base de datos
         if (allUsers.length === 0) {
             // Si no se encuentran usuarios, devolver un mensaje de error
@@ -150,8 +151,8 @@ export const updateUsers = async (req: Request, res: Response) => {
     try {
 
         // Actualizar el usuario por su ID y devolver el usuario actualizado
-        const userUpdate = await prisma.user.update({
-            where: { id: userId },
+        const userUpdate = await prismaClient.user.update({
+            where: { id: convertToType(userId) },
             data: { name, email }
         });
 
@@ -177,9 +178,9 @@ export const deleteUsers = async (req: Request, res: Response) => {
     try {
 
         // Eliminar el usuario por su ID
-        const userDelete = await prisma.user.delete({ where: { id: userId } });
+        const userDelete = await prismaClient.user.delete({ where: { id: convertToType(userId) } });
         /// Buscar y eliminar las películas asociadas al usuario
-        // await prisma.movies.deleteMany({ where: { userId } });
+        // await prismaClient.movies.deleteMany({ where: { userId } });
 
         // No se encontró el usuario para eliminar, pero la eliminación se considera exitosa
         if (!userDelete) {
