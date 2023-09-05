@@ -4,19 +4,19 @@ import { checkJwtMiddleware } from "../middlewares/checkjwt.middleware";
 
 const UserRouter = Router();
 
-// Ruta para crear un nuevo usuario
+// Path to create a new user
 UserRouter.post("/",checkJwtMiddleware, createUsers);
 
-// Ruta para obtener todos los usuarios
+// Path to get all users
 UserRouter.get("/",checkJwtMiddleware, getAllUsers);
 
-// Ruta para obtener un usuario por su ID
+// Route to get a user by their ID
 UserRouter.get("/:userId",checkJwtMiddleware, getUserById);
 
-// Ruta para actualizar los datos de un usuario por su ID
+// Route to update a user's data by their ID
 UserRouter.put("/:userId",checkJwtMiddleware, updateUsers);
 
-// Ruta para eliminar un usuario por su ID
+// Path to delete a user by their ID
 UserRouter.delete("/:userId",checkJwtMiddleware, deleteUsers);
 
 export default UserRouter;
