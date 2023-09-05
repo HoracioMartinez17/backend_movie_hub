@@ -15,13 +15,13 @@ const UserSchema = new Schema <IUser>({
         type: String,
         required: true,
         minlength: 2,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
+        trim: true // Trim is used to remove extra whitespace
     },
     email: {
         type: String,
         unique: true,
         required: true,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
+        trim: true // Trim is used to remove extra whitespace
     },
     password: {
         type: String,
@@ -34,51 +34,49 @@ const UserSchema = new Schema <IUser>({
 
 }, { timestamps: true, versionKey: false });
 
-
-
-// Middleware que se ejecuta antes de guardar un usuario en la base de datos
+// Middleware that runs before saving a user to the database
 UserSchema.pre<IUser>('save', async function (next) {
     try {
         
         const user = this;
 
-        // Si la contraseña no ha sido modificada, pasa al siguiente middleware
+        // If the password has not been modified, move on to the next middleware
         if (!user.isModified('password')) return next();
 
-        // Genera un salt (valor aleatorio) para el hash de la contraseña
+        // Generate a salt (random value) for password hashing
         const salt = await bcrypt.genSalt(10);
 
-        // Genera el hash de la contraseña utilizando el salt
+        // Generate the password hash using the salt
         const hash = await bcrypt.hash(user.password, salt);
 
-        // Reemplaza la contraseña con el hash
+        // Replace the password with the hash
         user.password = hash;
 
-        // Continúa con el siguiente middleware
+        // Continue with the next middleware
         next();
     } catch (error: any) {
-        // Manejo de errores: llama al siguiente middleware con el error
+        // Error handling: call the next middleware with the error
         return next(error);
     }
 });
 
-// Método personalizado para comparar contraseñas
+// Custom method to compare passwords
 UserSchema.methods.comparePassword = async function (candidatePassword: string) {
     try {
         const user = this;
 
-        // Compara la contraseña proporcionada con la contraseña almacenada en el documento
+        // Compare the provided password with the password stored in the document
         const isMatch = await bcrypt.compare(candidatePassword, user.password);
 
-        // Devuelve el resultado de la comparación
+        // Return the result of the comparison
         return isMatch;
     } catch (error: any) {
-        // Si hay un error, lanza una excepción
+        // If there is an error, throw an exception
         throw error;
     }
 }
 
-// Crea el modelo 'User' utilizando el esquema definido
+// Create the 'User' model using the defined schema
 const UserModel =  model<IUser>('User', UserSchema);
 
-export default UserModel
+export default UserModel;

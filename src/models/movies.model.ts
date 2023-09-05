@@ -13,22 +13,22 @@ const MoviesSchema = new Schema <IMoviesDocument>({
     name: {
         type: String,
         required: true,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
+        trim: true //  the trim is to remove extra whitespace
     },
     year: {
         type: Number,
         required: true,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
+        trim: true //  the trim is to remove extra whitespace
     },
     genre: {
         type: String,
         required: true,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
+        trim: true //  the trim is to remove extra whitespace
     },
     language: {
         type: String,
         required: true,
-        trim: true //  el trim es para eliminar espacios en blanco adicionales
+        trim: true //  the trim is to remove extra whitespace
     },
     description: {
         type: String,
@@ -42,7 +42,7 @@ const MoviesSchema = new Schema <IMoviesDocument>({
 
 }, { timestamps: true, versionKey: false });
 
-// Crea el modelo 'Movie' utilizando el esquema definido
+// Create the 'Movie' model using the defined schema
 const MoviesModel =  model<IMoviesDocument>('Movies', MoviesSchema);
 
 export default MoviesModel;

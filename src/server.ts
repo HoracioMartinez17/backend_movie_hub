@@ -7,20 +7,19 @@ import dotenv from 'dotenv';
 import { checkJwtMiddleware } from './middlewares/checkjwt.middleware';
 import errorHandler from './middlewares/error.middleware';
 
-
-// Inicializar la aplicación Express
+// Initialize the Express application
 const app: Express = express();
 
-// Configurar middlewares
-app.use(express.json()); // Middleware para manejar JSON en las solicitudes
-app.use(morgan('dev')); // Middleware para el registro de solicitudes en la consola
-app.use(cors()); // Middleware para habilitar CORS (Cross-Origin Resource Sharing)
-dotenv.config(); // Cargar variables de entorno desde el archivo .env
-app.use(express.urlencoded({ extended: false })); // Middleware para analizar datos de formularios
-app.use(errorHandler);
+// Configure middlewares
+app.use(express.json()); // Middleware for handling JSON in requests
+app.use(morgan('dev')); // Middleware for request logging in the console
+app.use(cors()); // Middleware to enable CORS (Cross-Origin Resource Sharing)
+dotenv.config(); // Load environment variables from the .env file
+app.use(express.urlencoded({ extended: false })); // Middleware for parsing form data
+app.use(errorHandler); // Middleware for handling errors
 
-// Configurar rutas
-app.use('/users', checkJwtMiddleware, UserRouter); // Usar el enrutador de usuarios en la ruta /users
-app.use('/movies',checkJwtMiddleware, MoviesRouter); // Usar el enrutador de películas en la ruta /movies
+// Configure routes
+app.use('/users', checkJwtMiddleware, UserRouter); // Use the user router at the /users route with JWT check
+app.use('/movies', checkJwtMiddleware, MoviesRouter); // Use the movies router at the /movies route with JWT check
 
 export default app;

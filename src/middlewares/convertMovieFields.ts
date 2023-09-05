@@ -1,54 +1,53 @@
 /**
- * Middleware para convertir y validar campos de una película en el cuerpo de la solicitud.
- * - Convierte valores no-cadena en cadenas.
- * - Convierte el título a minúsculas.
- * - Convierte el name del genero a minúsculas.
- * - En lugar de lanzar un error, una mejor práctica es intentar convertir los datos al formato correcto cuando sea posible,
- * - en lugar de rechazar la solicitud por completo.
- * - Este enfoque intenta convertir los datos en el formato correcto siempre que sea posible,
- * - lo que permite una experiencia más flexible para los usuarios y evita rechazar solicitudes innecesariamente.
-*/
+ * Middleware for converting and validating movie fields in the request body.
+ * - Converts non-string values to strings.
+ * - Converts the title to lowercase.
+ * - Converts the genre name to lowercase.
+ * - Instead of throwing an error, a better practice is to attempt to convert data to the correct format when possible,
+ * - instead of rejecting the request altogether.
+ * - This approach tries to convert data to the correct format whenever possible,
+ * - allowing for a more flexible user experience and avoiding unnecessary request rejections.
+ */
 import { Request, Response, NextFunction } from 'express';
 
-
 export const convertMovieFields = (req: Request, res: Response, next: NextFunction) => {
-    const { title, year, description, language, genre,image } = req.body;
+    const { title, year, description, language, genre, image } = req.body;
 
-    //Validar que se proporcionaron todos los campos requeridos
-    if (!title || !year || !genre || !language  || !description || !image) {
+    // Validate that all required fields are provided
+    if (!title || !year || !genre || !language || !description || !image) {
         return res.status(400).send({ error: 'Please provide all required fields' });
     }
 
-    // convertir el año a numero, si es un string
+    // Convert the year to a number if it's a string
     if (typeof year == 'string') {
         req.body.year = parseInt(year);
     }
 
-    //validar que el language sea un string
+    // Validate that the language is a string
     if (typeof language !== 'string') {
         return res.status(400).send({ status: 'error', error: 'Language must be a string' });
     }
 
-    // Convertir el título a string si es un número
+    // Convert the title to a string if it's a number
     if (typeof title === 'number') {
         req.body.title = title.toString();
     }
 
-    // Convertir el título a minúsculas si es un string
+    // Convert the title to lowercase if it's a string
     if (typeof title === 'string') {
         req.body.title = title.toLowerCase();
     }
 
-    // Convertir los géneros a minúsculas
-    if (typeof genre === 'string'){
+    // Convert the genre to lowercase
+    if (typeof genre === 'string') {
         req.body.genre = genre.toLowerCase();
     }
 
-    // Convertir la descripción a string si es un número
+    // Convert the description to a string if it's a number
     if (typeof description === 'number') {
         req.body.description = description.toString();
     }
 
-    // Pasar el control al siguiente middleware
+    // Pass control to the next middleware
     next();
 };

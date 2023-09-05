@@ -1,83 +1,75 @@
 import { Request, Response } from 'express';
-import MoviesModel from '../models/movies.model'; // Importar el modelo de movies
-import UserModel from '../models/user.model'; // Importar el modelo de usuario
+import MoviesModel from '../models/movies.model'; // Import the movies model
+import UserModel from '../models/user.model'; // Import the user model
 
-// Controlador para obtener todas las películas  por su ID
+// Controller to get movies by their ID
 export const getMoviesByUserId = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        // Buscar la movie en la base de datos por su ID
-        const movie = await MoviesModel.findById(id)
+        // Find the movie in the database by its ID
+        const movie = await MoviesModel.findById(id);
         if (!movie) {
-            // Si no se encuentra la movie, devolver un mensaje de error con código 404
+            // If the movie is not found, return an error message with status code 404
             return res.status(404).send({ status: 'error', error: 'Movie not found' });
         }
 
-        // Devolver el array de películas
+        // Return the movie array
         res.send(movie);
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ status: 'error', error: 'Internal server error'});
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of an internal error, return an error message with status code 500
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 
 export const getAllMovies = async (req: Request, res: Response) => {
     try {
-        // Buscar todas las películas en la base de datos
+        // Find all movies in the database
         const movies = await MoviesModel.find();
 
-        // Devolver el array de películas
+        // Return the array of movies
         res.send(movies);
-
-} catch (err) {
-    console.error(err); // Registrar el error en la consola para fines de depuración
-    // En caso de error interno, devolver un mensaje de error con código 500
-    res.status(500).send({ error: 'Internal server error' });
+    } catch (err) {
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of an internal error, return an error message with status code 500
+        res.status(500).send({ error: 'Internal server error' });
+    }
 }
-}
-
 
 export const createMovie = async (req: Request, res: Response) => {
     const { name, year, genre, language, image, description } = req.body;
     const { userId } = req.params;
 
     try {
-
-
         const user = await UserModel.findById(userId);
 
-        if(!user){
-           return res.status(404).send({ status: 'error', error: 'User not found' });
+        if (!user) {
+            return res.status(404).send({ status: 'error', error: 'User not found' });
         }
-        if(!name || !year  || !genre || !language || !image || !description){
-          return  res.status(400).send({ error: 'Please provide all required fields' });
+        if (!name || !year || !genre || !language || !image || !description) {
+            return res.status(400).send({ error: 'Please provide all required fields' });
         }
 
-        // Validar que el año sea un número
-        if(isNaN(year)){
-           return res.status(400).send({ status: 'error', error: 'Year must be a number' })
 
-        }
-        // Crear una nueva instancia de la película con los datos proporcionados
+        // Create a new movie instance with the provided data
         const newMovie = new MoviesModel({ name, year, genre, description, language, image });
-        // Guardar la nueva película en la base de datos
+        // Save the new movie to the database
         const savedMovie = await newMovie.save();
 
-        // Actualizar el documento del usuario para agregar la nueva película a su lista de películas
+        // Update the user document to add the new movie to their list of movies
         const updateMovieUser = await UserModel.findByIdAndUpdate(
             { _id: userId },
-            { $push: { movies:newMovie } }, // Agregar el ID de la nueva película a la lista de películas del usuario
-            { new: true } // Devuelve el documento actualizado del usuario
+            { $push: { movies: newMovie } }, // Add the ID of the new movie to the user's list of movies
+            { new: true } // Return the updated user document
         );
 
-        // Enviar la película guardada como respuesta
-        res.status(201).send({status:'success',message: 'Movie create successfully',newMovie});
+        // Send the saved movie as a response
+        res.status(201).send({ status: 'success', message: 'Movie created successfully', newMovie });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ error: 'Internal server error'});
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of an internal error, return an error message with status code 500
+        res.status(500).send({ error: 'Internal server error' });
     }
 };
 
@@ -86,52 +78,50 @@ export const updateMovie = async (req: Request, res: Response) => {
     const { name, year, genre, language, image, description } = req.body;
 
     try {
-        // Buscar la película por su ID y actualizar sus datos
+        // Find the movie by its ID and update its data
         const updatedMovie = await MoviesModel.findByIdAndUpdate(
             { _id: id },
             { $set: { name, year, genre, description, language, image } },
-            { new: true } // Devuelve el documento actualizado de la película
+            { new: true } // Return the updated movie document
         );
 
-        // Verificar si hubo algun error al actualizar la pelicula
+        // Check if there was an error while updating the movie
         if (!updatedMovie) {
             return res.status(404).send({ status: 'error', error: 'Movie not found' });
         }
 
-        // Enviar la película actualizada como respuesta
-        res.status(200).send({status:'success',message: 'Movie update successfully', updatedMovie});
+        // Send the updated movie as a response
+        res.status(200).send({ status: 'success', message: 'Movie updated successfully', updatedMovie });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
-        res.status(500).send({ status: 'error', error: 'Internal server error'});
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of an internal error, return an error message with status code 500
+        res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 
 export const deleteMovie = async (req: Request, res: Response) => {
-    const { movieId } = req.params; // ID de la película que se eliminará
+    const { movieId } = req.params; // ID of the movie to be deleted
 
     try {
-        // Buscar la película por su ID y eliminarla
+        // Find the movie by its ID and delete it
         const deletedMovie = await MoviesModel.findByIdAndDelete(movieId);
 
-        // Verificar si la película fue eliminada
+        // Check if the movie was deleted
         if (!deletedMovie) {
             return res.status(404).send({ status: 'error', message: 'Movie not found' });
         }
 
-        // Eliminar la referencia de la película en los usuarios que la tenían en su lista
+        // Remove the movie reference from users who had it in their list
         const updateUser = await UserModel.updateMany(
             { movies: movieId },
             { $pull: { movies: movieId } }
         );
 
-        // Enviar una respuesta exitosa sin contenido
+        // Send a successful response with no content
         res.status(204).send({ status: 'success', message: 'Movie deleted successfully' });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of an internal error, return an error message with status code 500
         res.status(500).send({ error: 'Internal server error' });
     }
 };
-
-

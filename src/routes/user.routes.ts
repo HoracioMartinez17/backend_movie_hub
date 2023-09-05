@@ -3,19 +3,19 @@ import { getAllUsers, createUsers, updateUsers, deleteUsers, getUserById } from 
 
 const UserRouter = Router();
 
-// Ruta para crear un nuevo usuario
+// Route to create a new user
 UserRouter.post("/", createUsers);
 
-// Ruta para obtener todos los usuarios
-UserRouter.get("/", getAllUsers)
+// Route to get all users
+UserRouter.get("/", getAllUsers);
 
-// Ruta para obtener un usuario por su ID
+// Route to get a user by their ID
 UserRouter.get("/:userId", getUserById);
 
-// Ruta para actualizar los datos de un usuario por su ID
+// Route to update a user's data by their ID
 UserRouter.put("/:userId", updateUsers);
 
-// Ruta para eliminar un usuario por su ID
+// Route to delete a user by their ID
 UserRouter.delete("/:userId", deleteUsers);
 
 export default UserRouter;
