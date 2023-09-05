@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import {prismaClient} from '../db/clientPrisma'
-import { uploadImage } from "../utils/cloudinary";
-import fs from 'fs-extra'
+import {prismaClient} from '../db/clientPrisma';
+import { uploadImage } from '../utils/cloudinary';
+import fs from 'fs-extra';
 import { convertToType } from '../utils/convertToType';
 
-
-// Controlador para crear una nueva pelicula
+// Controller to create a new movie
 export const createMovie = async (req: Request, res: Response) => {
     let { title, year, description, language, genre } = req.body;
     const { userId } = req.params;
@@ -13,34 +12,30 @@ export const createMovie = async (req: Request, res: Response) => {
     let secure_url_image: string = '';
     let public_id_image: string = '';
 
-
-
     try {
         const uploadedImage = req.files?.image;
 
-
-        // Verificar si uploadedImage existe y no es un array
+        // Check if uploadedImage exists and is not an array
         if (uploadedImage === undefined || Array.isArray(uploadedImage)) {
             console.log('Invalid or missing image');
             return res.status(400).json('Invalid or missing image');
         }
 
-        // Verificar si 'tempFilePath' está presente en uploadedImage
+        // Check if 'tempFilePath' is present in uploadedImage
         if (!('tempFilePath' in uploadedImage)) {
             console.log('Missing tempFilePath');
             return res.status(400).send('Missing tempFilePath');
         }
 
-        // Subir la imagen a Cloudinary
+        // Upload the image to Cloudinary
         const image = await uploadImage(uploadedImage.tempFilePath);
         public_id_image = image.public_id;
         secure_url_image = image.secure_url;
 
-        // Eliminar el archivo temporal
+        // Delete the temporary file
         await fs.unlink(uploadedImage.tempFilePath);
 
-
-        // Crear una nueva instancia de la película con los datos proporcionados
+        // Create a new instance of the movie with the provided data
         const newMovie = await prismaClient.movies.create({
             data: {
                 title,
@@ -58,7 +53,7 @@ export const createMovie = async (req: Request, res: Response) => {
                 },
                 User: {
                     connect: {
-                        id: userId,
+                        id: convertToType(userId) ,
                     },
                 },
             },
@@ -82,35 +77,32 @@ export const createMovie = async (req: Request, res: Response) => {
             },
         });
 
-        // Enviar la película guardada como respuesta
+        // Send the saved movie as a response
         res.status(201).send({ status: 'success', message: 'Movie created successfully', newMovie });
-
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'Internal server error' });
     }
 };
 
-
-
-//controlador para actualizar las peliculas
+// Controller to update movies with an image
 export const updateMovieWithImage = async (req: Request, res: Response) => {
     const { movieId } = req.params;
     const { title, description, language, year, genre } = req.body;
 
     try {
-        // Obtener la película existente por su ID
+        // Get the existing movie by its ID
         const existingMovie = await prismaClient.movies.findUnique({
-            where: { id:  convertToType(movieId) },
+            where: { id: convertToType(movieId)  },
         });
 
-        // Si no se encontró la película, devolver un error 404
+        // If the movie was not found, return a 404 error
         if (!existingMovie) {
             return res.status(404).send({ status: 'error', message: 'Movie not found' });
         }
 
-        // Crear un objeto de datos con los campos proporcionados en la solicitud
-        const updatedData: any = {}; // Define las propiedades necesarias y sus tipos
+        // Create a data object with the fields provided in the request
+        const updatedData: any = {}; // Define the necessary properties and their types
 
         if (title !== undefined) {
             updatedData.title = title;
@@ -132,20 +124,20 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
             updatedData.genre = { connect: { id: genre } };
         }
 
-        // Actualizar la película con los campos proporcionados
+        // Update the movie with the provided fields
         const updatedMovie = await prismaClient.movies.update({
-            where: { id: convertToType(movieId) },
+            where: { id: convertToType(movieId)  },
             data: updatedData,
         });
 
-        // Cargar la nueva imagen (si se proporciona) y actualizar la referencia de la imagen en la base de datos
+        // Load the new image (if provided) and update the image reference in the database
         const uploadedImage = req.files?.image;
         if (uploadedImage && 'tempFilePath' in uploadedImage) {
             try {
-                // Subir la nueva imagen
+                // Upload the new image
                 const posterImage = await uploadImage(uploadedImage.tempFilePath);
 
-                // Actualizar la referencia de la imagen en la base de datos
+                // Update the image reference in the database
                 await prismaClient.movies.update({
                     where: { id: convertToType(movieId) },
                     data: {
@@ -158,32 +150,32 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
                     },
                 });
 
-                // Eliminar el archivo temporal de la nueva imagen
+                // Delete the temporary file of the new image
                 await fs.unlink(uploadedImage.tempFilePath);
             } catch (error) {
                 return res.status(500).json({ error: 'Upload error' });
             }
         }
 
-        // Devolver una respuesta 200 que indica que la actualización ha sido exitosa
+        // Return a 200 response indicating a successful update
         res.status(200).send({ status: 'success', message: 'Movie updated successfully', updatedMovie });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of an internal error, return an error message with status code 500
         res.status(500).send({ error: 'Internal server error' });
     }
 };
 
 
 
-// Controlador para obtener las películas  por su ID
+// Controller to get movies by their ID
 export const getMoviesByMovieId = async (req: Request, res: Response) => {
     const { movieId } = req.params;
 
     try {
-        // Buscar la movie en la base de datos por su ID
+        // Find the movie in the database by its ID
         const movie = await prismaClient.movies.findUnique({
-            where: { id:convertToType(movieId) },
+            where: {id: convertToType(movieId)  },
             select: {
                 id: true,
                 title: true,
@@ -193,36 +185,35 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
                 image: true,
                 genre: {
                     select: {
-                        name: true
-                    }
-                }
+                        name: true,
+                    },
+                },
             }
         });
         if (!movie) {
-            // Si no se encuentra la movie, devolver un mensaje de error con código 404
+            // If the movie is not found, return an error message with status code 404
             return res.status(404).send({ status: 'error', error: 'Movie not found' });
         }
 
-        // Devolver el array de películas
+        // Return the array of movies
         res.status(200).send({ status: 'success', movie });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of internal error, return an error message with status code 500
         res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 
-
-// Controlador para obtener todas las peliculas
+// Controller to get all movies
 export const getAllMovies = async (req: Request, res: Response) => {
-    const pageSize = 4; // Número de películas por página
-    const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Página actual
+    const pageSize = 4; // Number of movies per page
+    const currentPage = req.query.page ? parseInt(req.query.page.toString()) : 1; // Current page
 
     try {
-        // Calcular el índice de inicio para saltar registros
+        // Calculate the start index to skip records
         const skip = (currentPage - 1) * pageSize;
 
-        // Buscar películas en la base de datos con paginación y campos seleccionados
+        // Search for movies in the database with pagination and selected fields
         const movies = await prismaClient.movies.findMany({
             skip,
             take: pageSize,
@@ -234,14 +225,15 @@ export const getAllMovies = async (req: Request, res: Response) => {
                 image: true,
                 genre: true,
             },
-        })
-        // Contar todas las películas para calcular el total de páginas
+        });
+
+        // Count all movies to calculate the total pages
         const totalMovies = await prismaClient.movies.count();
 
-        // Calcular el número total de páginas
+        // Calculate the total number of pages
         const totalPages = Math.ceil(totalMovies / pageSize);
 
-        // Devolver la lista de películas y la información de paginación
+        // Return the list of movies and pagination information
         res.status(200).send({
             status: 'success',
             data: movies,
@@ -254,41 +246,39 @@ export const getAllMovies = async (req: Request, res: Response) => {
         });
     } catch (err) {
         console.error(err);
+        // In case of internal error, return an error message with status code 500
         res.status(500).send({ status: 'error', error: 'Internal server error' });
     }
 };
 
-
-// Controlador para eliminar una pelicula
+// Controller to delete a movie
 export const deleteMovie = async (req: Request, res: Response) => {
-    const { movieId } = req.params; // ID de la película que se eliminará
+    const { movieId } = req.params; // ID of the movie to be deleted
 
     try {
-        // Buscar la película por su ID y eliminarla
-        const deletedMovie = await prismaClient.movies.delete({ where: { id: movieId } });
+        // Find the movie by its ID and delete it
+        const deletedMovie = await prismaClient.movies.delete({ where:{ id: convertToType(movieId)} });
 
-        // Verificar si la película fue eliminada
+        // Check if the movie was deleted
         if (!deletedMovie) {
             return res.status(404).send({ status: 'error', message: 'Movie not found' });
         }
 
-
-        // Enviar una respuesta exitosa sin contenido
+        // Send a successful response with no content
         res.status(204).send({ status: 'success', message: 'Movie deleted successfully' });
     } catch (err) {
-        console.error(err); // Registrar el error en la consola para fines de depuración
-        // En caso de error interno, devolver un mensaje de error con código 500
+        console.error(err); // Log the error to the console for debugging purposes
+        // In case of internal error, return an error message with status code 500
         res.status(500).send({ error: 'Internal server error' });
     }
 };
 
-// //modelo de creacio de movies
+// Movie creation model
 // {
-//     "title": "Nombre de la película",
+//     "title": "Movie Title",
 //     "year": 2023,
-//     "description": "Descripción de la película",
-//     "language": "Idioma de la película",
-//     "image": "URL de la imagen",
-//     "genres": "id del género al que quiere relacionar la movie"
-//   }
-
+//     "description": "Movie Description",
+//     "language": "Movie Language",
+//     "image": "Image URL",
+//     "genre": "ID of the genre to which you want to relate the movie"
+// }

@@ -5,18 +5,18 @@ import { checkJwtMiddleware } from '../middlewares/checkjwt.middleware';
 
 const MoviesRouter = Router();
 
-// Ruta para obtener todas las películas de un usuario por su ID
+// Path to get all a user's movies by their ID
 MoviesRouter.get('/:movieId',checkJwtMiddleware, getMoviesByMovieId);
-// Ruta para obtener todas las películas (sin filtrar por usuario)
+// Path to get all movies (without filtering by user)
 MoviesRouter.get('/',checkJwtMiddleware, getAllMovies);
 
-// Ruta para crear una nueva película asociada a un usuario específico
+// Path to create a new movie associated with a specific user
 MoviesRouter.post('/:userId',checkJwtMiddleware, convertMovieFields,createMovie);
 
-// Ruta para actualizar los detalles de una película específica
+// Path to update details of a specific movie
  MoviesRouter.put('/:movieId',checkJwtMiddleware,convertMovieFields, updateMovieWithImage);
 
-// Ruta para eliminar una película de la lista de un usuario por su ID
+// Path to remove a movie from a user's list by its ID
 MoviesRouter.delete('/:movieId',checkJwtMiddleware, deleteMovie);
 
 export default MoviesRouter;

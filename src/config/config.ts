@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-// Definición de tipos para la configuración
+// Type definitions for configuration
 type TConfig = {
     [key: string]: EnvironmentConfig;
 }
@@ -12,7 +12,7 @@ type EnvironmentConfig = {
 }
 
 type appConfig = {
-    PORT: string | number; // Puerto en el que se ejecutará la aplicación
+    PORT: string | number; // Port on which the application will run
 }
 
 type auth0Config = {
@@ -27,24 +27,21 @@ type cloudinaryConfig = {
     api_secret: string | undefined;
 }
 
-
-
-
-// Cargar variables de entorno según el modo (development o production)
+// Load environment variables based on the mode (development or production)
 if (process.env.NODE_ENV === 'production') {
     dotenv.config({ path: '.env.production' });
 } else {
     dotenv.config({ path: '.env.development' });
 }
 
-// Obtener el modo de ejecución actual (development por defecto)
+// Get the current execution mode (default is development)
 const ENV = process.env.NODE_ENV ?? 'development';
 
-// Configuración para diferentes entornos (development y production)
+// Configuration for different environments (development and production)
 const CONFIG: TConfig = {
     development: {
         app: {
-            PORT: process.env.PORT || 4001 // Puerto para desarrollo
+            PORT: process.env.PORT || 4001 // Port for development
         },
         auth0: {
             client_origin: process.env.APP_ORIGIN,
@@ -56,11 +53,10 @@ const CONFIG: TConfig = {
             api_key: process.env.CLOUDINARY_API_KEY,
             api_secret: process.env.CLOUDINARY_API_SECRET
         }
-
     },
     production: {
         app: {
-            PORT: process.env.PORT || 4002 // Puerto para producción
+            PORT: process.env.PORT || 4002 // Port for production
         },
         auth0: {
             client_origin: process.env.APP_ORIGIN,
@@ -72,9 +68,8 @@ const CONFIG: TConfig = {
             api_key: process.env.CLOUDINARY_API_KEY,
             api_secret: process.env.CLOUDINARY_API_SECRET
         }
-
     }
 }
 
-// Exportar la configuración correspondiente al modo actual (development o production)
+// Export the configuration for the current mode (development or production)
 export default CONFIG[ENV];
