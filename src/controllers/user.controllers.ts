@@ -6,7 +6,6 @@ export const createUsers = async (req: Request, res: Response) => {
     const { name, email } = req.body;
 
     try {
-        // Check if all required fields are provided
         if (!name || !email) {
             return res.status(400).send({ status: 'error', error: 'Name and email are required fields.' });
         }
