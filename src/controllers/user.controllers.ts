@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import {prismaClient} from '../db/clientPrisma'; // Import the user model
-import { convertToType } from '../utils/convertToType';
+
 
 // Controller to create a new user
 export const createUsers = async (req: Request, res: Response) => {
@@ -85,7 +85,7 @@ export const getUserById = async (req: Request, res: Response) => {
     try {
         // Find the user by their ID and populate their "movies" field with movie documents
         const user = await prismaClient.user.findUnique({
-            where: { id: convertToType(userId) },
+            where: { id:userId },
             include: {
                 movies: {
                     select: {
@@ -149,7 +149,7 @@ export const updateUsers = async (req: Request, res: Response) => {
     try {
         // Update the user by their ID and return the updated user
         const userUpdate = await prismaClient.user.update({
-            where: {id: convertToType(userId) },
+            where: {id:userId },
             data: { name, email },
         });
 
@@ -174,7 +174,7 @@ export const deleteUsers = async (req: Request, res: Response) => {
     const { userId } = req.params;
     try {
         // Delete the user by their ID
-        const userDelete = await prismaClient.user.delete({ where: {id: convertToType(userId) } });
+        const userDelete = await prismaClient.user.delete({ where: {id:userId } });
 
         // No user was found for deletion, but the deletion is considered successful
         if (!userDelete) {

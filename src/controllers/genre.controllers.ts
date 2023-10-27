@@ -36,7 +36,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             where: { name: genreName },
             include: {
                 movies: {
-                    where: { id: convertToType(userId)},
+                    where: { id: userId},
                     skip: skip,
                     take: pageSize,
                     include: {
@@ -60,7 +60,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             return res.status(404).send({ status: 'error', error: "Genre not found" });
         }
 
-        const totalMovies = await prismaClient.movies.count({ where: { genreId:  convertToType(genre.id), userId } });
+        const totalMovies = await prismaClient.movies.count({ where: { genreId: genre.id, userId } });
         const totalPages = Math.ceil(totalMovies / pageSize);
 
         res.status(200).send({
@@ -88,7 +88,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
         const allGenres = await prismaClient.genres.findMany({
             include: {
                 movies: {
-                    where: { id: convertToType(userId) },
+                    where: { id:userId },
                     select: {
                         id: true,
                         title: true,
@@ -116,7 +116,7 @@ export const updateGenre = async (req: Request, res: Response) => {
     try {
         // Find the genre by its ID and update its name
         const updatedGenre = await prismaClient.genres.update({
-            where: { id:  convertToType(id) },
+            where: { id:  id },
             data: { name }
         });
 
@@ -141,7 +141,7 @@ export const deleteGenre = async (req: Request, res: Response) => {
     try {
         // Find the genre by its ID and delete it
         const deletedGenre = await prismaClient.genres.delete({
-            where: { id: convertToType(id) }
+            where: { id: id }
         });
 
         // Check if the genre was deleted

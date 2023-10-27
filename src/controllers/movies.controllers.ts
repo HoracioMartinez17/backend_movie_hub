@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import {prismaClient} from '../db/clientPrisma';
 import { uploadImage } from '../utils/cloudinary';
 import fs from 'fs-extra';
-import { convertToType } from '../utils/convertToType';
+
 
 // Controller to create a new movie
 export const createMovie = async (req: Request, res: Response) => {
@@ -53,7 +53,7 @@ export const createMovie = async (req: Request, res: Response) => {
                 },
                 User: {
                     connect: {
-                        id: convertToType(userId) ,
+                        id:userId ,
                     },
                 },
             },
@@ -93,7 +93,7 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
     try {
         // Get the existing movie by its ID
         const existingMovie = await prismaClient.movies.findUnique({
-            where: { id: convertToType(movieId)  },
+            where: { id: movieId  },
         });
 
         // If the movie was not found, return a 404 error
@@ -126,7 +126,7 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
 
         // Update the movie with the provided fields
         const updatedMovie = await prismaClient.movies.update({
-            where: { id: convertToType(movieId)  },
+            where: { id: movieId  },
             data: updatedData,
         });
 
@@ -139,7 +139,7 @@ export const updateMovieWithImage = async (req: Request, res: Response) => {
 
                 // Update the image reference in the database
                 await prismaClient.movies.update({
-                    where: { id: convertToType(movieId) },
+                    where: { id: movieId },
                     data: {
                         image: {
                             update: {
@@ -175,7 +175,7 @@ export const getMoviesByMovieId = async (req: Request, res: Response) => {
     try {
         // Find the movie in the database by its ID
         const movie = await prismaClient.movies.findUnique({
-            where: {id: convertToType(movieId)  },
+            where: {id: movieId  },
             select: {
                 id: true,
                 title: true,
@@ -257,7 +257,7 @@ export const deleteMovie = async (req: Request, res: Response) => {
 
     try {
         // Find the movie by its ID and delete it
-        const deletedMovie = await prismaClient.movies.delete({ where:{ id: convertToType(movieId)} });
+        const deletedMovie = await prismaClient.movies.delete({ where:{ id:movieId} });
 
         // Check if the movie was deleted
         if (!deletedMovie) {
