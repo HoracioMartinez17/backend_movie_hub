@@ -9,16 +9,7 @@ export const createUsers = async (req: Request, res: Response) => {
         if (!name || !email) {
             return res.status(400).send({ status: 'error', error: 'Name and email are required fields.' });
         }
-        // Check if the username is valid
-        if (name.length > 30 || name.length < 2) {
-            return res.status(400).send({ status: 'error', error: "Invalid username. It must be between 2 and 30 characters long." });
-        }
 
-        // Check if the email is valid
-        const emailFormatIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        if (!emailFormatIsValid) {
-            return res.status(400).send({ status: 'error', error: "Invalid email format. Make sure it includes: '@', '.'" });
-        }
 
         // Check if the email already exists in the database
         const emailExist = await prisma.user.findUnique({
