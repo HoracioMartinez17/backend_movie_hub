@@ -1,4 +1,4 @@
-import express, { Express, Request,Response } from 'express';
+import express, { Express,Response } from 'express';
 import UserRouter from './routes/user.routes';
 import MoviesRouter from './routes/movies.routes';
 import morgan from 'morgan';
