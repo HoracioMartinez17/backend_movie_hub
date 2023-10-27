@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import {prismaClient} from "../db/clientPrisma";
-import { convertToType } from "../utils/convertToType";
+
 
 // Create a new genre
 export const createGenre = async (req: Request, res: Response) => {
@@ -36,7 +36,7 @@ export const getMoviesByGenreAndUser = async (req: Request, res: Response) => {
             where: { name: genreName },
             include: {
                 movies: {
-                    where: { id: userId},
+                    where: { userId},
                     skip: skip,
                     take: pageSize,
                     include: {
@@ -88,7 +88,7 @@ export const getAllGenres = async (req: Request, res: Response) => {
         const allGenres = await prismaClient.genres.findMany({
             include: {
                 movies: {
-                    where: { id:userId },
+                    where: { userId },
                     select: {
                         id: true,
                         title: true,
