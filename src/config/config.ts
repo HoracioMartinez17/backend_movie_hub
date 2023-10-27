@@ -28,10 +28,10 @@ type cloudinaryConfig = {
 }
 
 // Load environment variables based on the mode (development or production)
-if (process.env.NODE_ENV === 'production') {
-    dotenv.config({ path: '.env.production' });
+if (process.env.NODE_ENV === "production") {
+    dotenv.config({ path: ".env" });
 } else {
-    dotenv.config({ path: '.env.development' });
+    dotenv.config({ path: '.env' });
 }
 
 // Get the current execution mode (default is development)
