@@ -1,6 +1,5 @@
 import {Router} from "express";
 import {createGenre, getAllGenres,getMoviesByGenreAndUser, deleteGenre,updateGenre } from "../controllers/genre.controllers";
-// import { checkJwtMiddleware } from "../middlewares/checkjwt.middleware";
 
 const GenreRouter = Router()
 

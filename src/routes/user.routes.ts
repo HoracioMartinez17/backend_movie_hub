@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getAllUsers, createUsers, updateUsers, deleteUsers, getUserById } from "../controllers/user.controllers";
-import { checkJwtMiddleware } from "../middlewares/checkjwt.middleware";
+
 
 const UserRouter = Router();
 
@@ -8,10 +8,10 @@ const UserRouter = Router();
 UserRouter.post("/",createUsers);
 
 // Path to get all users
-UserRouter.get("/",checkJwtMiddleware, getAllUsers);
+UserRouter.get("/", getAllUsers);
 
 // Route to get a user by their ID
-UserRouter.get("/:userId",checkJwtMiddleware, getUserById);
+UserRouter.get("/:userId", getUserById);
 
 // Route to update a user's data by their ID
 UserRouter.put("/:userId", updateUsers);
